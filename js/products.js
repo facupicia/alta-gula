@@ -5,8 +5,6 @@
   const CART_KEY = "altaGula.cart";
   const SHEET_URL_KEY = "altaGula.sheetUrl";
   const LAST_SYNC_KEY = "altaGula.lastSync";
-  const THEME_KEY = "altaGula.theme";
-  const ADMIN_SESSION_KEY = "altaGula.adminSession";
   const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtysB1M_oNpuXveauerVx3N7ujqdVXBAkkc4uw4cTXmCsNl6_flTMNLERs3PSE_EibVjNbpuYPVIX1/pub?output=csv";
 
   const categories = ["Golosinas", "Chocolates", "Bebidas", "Snacks", "Combos"];
@@ -272,15 +270,10 @@
     return String(value ?? "").replace(/[&<>"']/g, (char) => map[char]);
   }
 
-  function applyTheme(theme) {
-    const selected = theme || localStorage.getItem(THEME_KEY) || "dark";
-    document.documentElement.dataset.theme = selected;
-    localStorage.setItem(THEME_KEY, selected);
-    return selected;
-  }
-
-  function toggleTheme() {
-    return applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+  function applyTheme() {
+    document.documentElement.dataset.theme = "dark";
+    localStorage.removeItem("altaGula.theme");
+    return "dark";
   }
 
   window.AltaGula = {
@@ -288,8 +281,6 @@
     CART_KEY,
     SHEET_URL_KEY,
     LAST_SYNC_KEY,
-    THEME_KEY,
-    ADMIN_SESSION_KEY,
     DEFAULT_SHEET_URL,
     categories,
     whatsappNumber,
@@ -309,8 +300,7 @@
     saveCart,
     formatPrice,
     escapeHtml,
-    applyTheme,
-    toggleTheme
+    applyTheme
   };
 
   applyTheme();

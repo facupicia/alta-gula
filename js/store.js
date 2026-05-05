@@ -2,11 +2,14 @@
   "use strict";
 
   const AG = window.AltaGula;
+  const MIN_ORDER_TOTAL = 1000;
   const state = {
     products: [],
     cart: [],
     category: "Todos",
-    query: ""
+    query: "",
+    activeProductId: null,
+    modalQty: 1
   };
 
   const elements = {};
@@ -27,9 +30,22 @@
       cartItems: $("#cartItems"),
       cartTotal: $("#cartTotal"),
       cartCount: $("#cartCount"),
+      mobileCartSummary: $("#mobileCartSummary"),
+      mobileCartCount: $("#mobileCartCount"),
+      mobileCartTotal: $("#mobileCartTotal"),
       checkoutButton: $("#checkoutButton"),
+      checkoutForm: $("#checkoutForm"),
+      checkoutSection: $("#checkout"),
+      checkoutSummary: $("#checkoutSummary"),
+      checkoutTotal: $("#checkoutTotal"),
+      checkoutStatus: $("#checkoutStatus"),
+      customerName: $("#customerName"),
+      sendWhatsappButton: $("#sendWhatsappButton"),
       clearCartButton: $("#clearCartButton"),
-      themeToggle: $("#themeToggle"),
+      productModal: $("#productModal"),
+      productModalBackdrop: $("#productModalBackdrop"),
+      productModalContent: $("#productModalContent"),
+      closeProductModal: $("#closeProductModal"),
       toast: $("#toast")
     });
 
@@ -49,17 +65,20 @@
     });
 
     elements.cartButton.addEventListener("click", openCart);
+    elements.mobileCartSummary.addEventListener("click", openCart);
     elements.closeCart.addEventListener("click", closeCart);
     elements.cartBackdrop.addEventListener("click", closeCart);
-    elements.checkoutButton.addEventListener("click", checkout);
+    elements.closeProductModal.addEventListener("click", closeProductModal);
+    elements.productModalBackdrop.addEventListener("click", closeProductModal);
+    elements.checkoutButton.addEventListener("click", goToCheckout);
+    elements.checkoutForm.addEventListener("submit", sendCheckoutToWhatsapp);
     elements.clearCartButton.addEventListener("click", clearCart);
-    elements.themeToggle.addEventListener("click", () => {
-      const theme = AG.toggleTheme();
-      elements.themeToggle.setAttribute("aria-label", theme === "light" ? "Activar modo oscuro" : "Activar modo claro");
-    });
 
     window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeCart();
+      if (event.key === "Escape") {
+        if (isProductModalOpen()) closeProductModal();
+        else closeCart();
+      }
     });
 
     window.addEventListener("altaGula:productsChanged", () => {
@@ -72,7 +91,8 @@
     const filters = ["Todos", ...AG.categories];
     elements.filters.innerHTML = filters.map((category) => `
       <button class="filter-btn ${category === state.category ? "active" : ""}" type="button" data-category="${AG.escapeHtml(category)}" aria-pressed="${category === state.category}">
-        ${AG.escapeHtml(category)}
+        <span class="filter-icon" aria-hidden="true">${categoryIcon(category)}</span>
+        <span class="filter-label">${AG.escapeHtml(category)}</span>
       </button>
     `).join("");
 
@@ -85,6 +105,19 @@
     });
   }
 
+  function categoryIcon(category) {
+    const icons = {
+      Todos: "AG",
+      Golosinas: "GO",
+      Chocolates: "CH",
+      Bebidas: "BE",
+      Snacks: "SN",
+      Combos: "CO"
+    };
+
+    return AG.escapeHtml(icons[category] || category.slice(0, 2).toUpperCase());
+  }
+
   function getFilteredProducts() {
     return state.products.filter((product) => {
       const matchesCategory = state.category === "Todos" || product.category === state.category;
@@ -95,7 +128,7 @@
 
   function productImage(product, className = "") {
     if (product.imageUrl) {
-      return `<img src="${AG.escapeHtml(product.imageUrl)}" alt="${AG.escapeHtml(product.name)}" loading="lazy" onerror="this.closest('.product-media, .cart-thumb, .admin-thumb')?.classList.add('image-error'); this.remove();">`;
+      return `<img src="${AG.escapeHtml(product.imageUrl)}" alt="${AG.escapeHtml(product.name)}" loading="lazy" onerror="this.closest('.product-media, .cart-thumb, .modal-product-media')?.classList.add('image-error'); this.remove();">`;
     }
     return `<span class="${className}">${AG.escapeHtml(product.category.slice(0, 1))}</span>`;
   }
@@ -119,50 +152,118 @@
       return;
     }
 
-    elements.grid.innerHTML = products.map((product) => {
-      const soldOut = product.stock <= 0;
-      return `
-        <article class="product-card">
-          <div class="product-media">
-            ${productImage(product, "product-fallback")}
-            <span class="stock-label ${soldOut ? "sold-out" : ""}">${soldOut ? "Agotado" : (product.stockManaged ? `${product.stock} disp.` : "En stock")}</span>
+    const categories = (state.category === "Todos" ? AG.categories : [state.category])
+      .map((category) => ({
+        category,
+        products: products.filter((product) => product.category === category)
+      }))
+      .filter((group) => group.products.length);
+
+    elements.grid.innerHTML = categories.map((group) => `
+      <section class="category-carousel-section" aria-labelledby="category-${AG.slugify(group.category)}">
+        <div class="carousel-head">
+          <div>
+            <h3 id="category-${AG.slugify(group.category)}">${AG.escapeHtml(group.category)}</h3>
           </div>
-          <div class="product-body">
-            <span class="product-kicker">${AG.escapeHtml(product.category)}</span>
-            <h3>${AG.escapeHtml(product.name)}</h3>
-            <p>${AG.escapeHtml(product.description || "Producto seleccionado de Alta GULA Delivery.")}</p>
-            <strong class="product-price">${AG.formatPrice(product.price)}</strong>
-          </div>
-          <div class="product-actions">
-            <button class="btn btn-primary" type="button" data-add="${AG.escapeHtml(product.id)}" ${soldOut ? "disabled" : ""}>
-              ${soldOut ? "Sin stock" : "Agregar al carrito"}
+          <div class="carousel-controls" aria-label="Mover carrusel de ${AG.escapeHtml(group.category)}">
+            <button class="icon-btn" type="button" data-carousel-scroll="${AG.escapeHtml(group.category)}" data-direction="-1" aria-label="Ver productos anteriores">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15 18-6-6 6-6"></path>
+              </svg>
+            </button>
+            <button class="icon-btn" type="button" data-carousel-scroll="${AG.escapeHtml(group.category)}" data-direction="1" aria-label="Ver más productos">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
             </button>
           </div>
-        </article>
-      `;
-    }).join("");
+        </div>
+        <div class="products-carousel" data-carousel="${AG.escapeHtml(group.category)}">
+          ${group.products.map(renderProductCard).join("")}
+        </div>
+      </section>
+    `).join("");
 
     elements.grid.querySelectorAll("[data-add]").forEach((button) => {
-      button.addEventListener("click", () => addToCart(button.dataset.add));
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        addToCart(button.dataset.add);
+      });
+    });
+
+    elements.grid.querySelectorAll("[data-product-id]").forEach((card) => {
+      card.addEventListener("click", () => openProductModal(card.dataset.productId));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openProductModal(card.dataset.productId);
+        }
+      });
+    });
+
+    elements.grid.querySelectorAll("[data-carousel-scroll]").forEach((button) => {
+      button.addEventListener("click", () => scrollCarousel(button.dataset.carouselScroll, Number(button.dataset.direction)));
     });
   }
 
-  function addToCart(productId) {
+  function renderProductCard(product) {
+    const soldOut = product.stock <= 0;
+    return `
+      <article class="product-card" role="button" tabindex="0" data-product-id="${AG.escapeHtml(product.id)}" aria-label="Ver detalle de ${AG.escapeHtml(product.name)}">
+        <div class="product-media">
+          ${productImage(product, "product-fallback")}
+          <span class="stock-label ${soldOut ? "sold-out" : ""}">${getStockLabel(product)}</span>
+        </div>
+        <div class="product-body">
+          <h3>${AG.escapeHtml(product.name)}</h3>
+          <div class="product-price-row">
+            <span>ARS$</span>
+            <strong class="product-price">${AG.formatPrice(product.price).replace(/\s?ARS|\$/g, "").trim()}</strong>
+          </div>
+        </div>
+        <div class="product-actions">
+          <button class="quick-add-btn" type="button" data-add="${AG.escapeHtml(product.id)}" aria-label="Agregar ${AG.escapeHtml(product.name)} al carrito" ${soldOut ? "disabled" : ""}>
+            ${soldOut ? "Agotado" : "+"}
+          </button>
+        </div>
+      </article>
+    `;
+  }
+
+  function scrollCarousel(category, direction) {
+    const carousel = [...elements.grid.querySelectorAll("[data-carousel]")]
+      .find((candidate) => candidate.dataset.carousel === category);
+    if (!carousel) return;
+    carousel.scrollBy({
+      left: direction * carousel.clientWidth * 0.82,
+      behavior: "smooth"
+    });
+  }
+
+  function getStockLabel(product) {
+    if (product.stock <= 0) return "Agotado";
+    return product.stockManaged ? `${product.stock} disp.` : "En stock";
+  }
+
+  function addToCart(productId, qty = 1) {
     const product = state.products.find((item) => item.id === productId);
     if (!product || product.stock <= 0) return;
     const existing = state.cart.find((item) => item.id === productId);
     const currentQty = existing ? existing.qty : 0;
+    const requestedQty = Math.max(1, Math.round(Number(qty) || 1));
+    const nextQty = Math.min(currentQty + requestedQty, product.stock);
 
-    if (currentQty >= product.stock) {
+    if (nextQty <= currentQty) {
       showToast("Ya agregaste todo el stock disponible.");
       return;
     }
 
-    if (existing) existing.qty += 1;
-    else state.cart.push({ id: product.id, qty: 1 });
+    if (existing) existing.qty = nextQty;
+    else state.cart.push({ id: product.id, qty: nextQty });
     AG.saveCart(state.cart);
     renderCart();
-    showToast(`${product.name} agregado al carrito.`);
+    const addedQty = nextQty - currentQty;
+    showToast(`${addedQty} x ${product.name} agregado${addedQty === 1 ? "" : "s"} al carrito.`);
   }
 
   function updateQty(productId, qty) {
@@ -191,8 +292,13 @@
     const total = lines.reduce((sum, item) => sum + item.qty * item.price, 0);
     elements.cartCount.textContent = count;
     elements.cartTotal.textContent = AG.formatPrice(total);
+    elements.mobileCartCount.textContent = `${count} producto${count === 1 ? "" : "s"}`;
+    elements.mobileCartTotal.textContent = AG.formatPrice(total);
+    elements.mobileCartSummary.hidden = count === 0;
+    document.body.classList.toggle("has-mobile-cart", count > 0);
     elements.checkoutButton.disabled = lines.length === 0;
     elements.clearCartButton.disabled = lines.length === 0;
+    renderCheckoutSummary(lines, total);
 
     if (!lines.length) {
       elements.cartItems.innerHTML = `<div class="empty-state">Tu carrito está vacío.</div>`;
@@ -243,11 +349,108 @@
     });
   }
 
+  function openProductModal(productId) {
+    const product = state.products.find((item) => item.id === productId);
+    if (!product) return;
+    state.activeProductId = product.id;
+    state.modalQty = product.stock <= 0 ? 0 : 1;
+    renderProductModal(product);
+    elements.productModal.classList.add("open");
+    elements.productModalBackdrop.classList.add("open");
+    elements.productModal.setAttribute("aria-hidden", "false");
+    syncBodyLock();
+    elements.closeProductModal.focus();
+  }
+
+  function renderProductModal(product) {
+    const soldOut = product.stock <= 0;
+    const description = product.description || "Producto seleccionado de Alta GULA Delivery.";
+    elements.productModalContent.innerHTML = `
+      <div class="modal-product-grid">
+        <div class="modal-product-media">
+          ${productImage(product, "product-fallback modal-fallback")}
+          <span class="stock-label ${soldOut ? "sold-out" : ""}">${getStockLabel(product)}</span>
+        </div>
+        <div class="modal-product-detail">
+          <span class="product-kicker">${AG.escapeHtml(product.category)}</span>
+          <h2 id="productModalTitle">${AG.escapeHtml(product.name)}</h2>
+          <p>${AG.escapeHtml(description)}</p>
+          <div class="modal-price-row">
+            <strong class="product-price">${AG.formatPrice(product.price)}</strong>
+            <span class="muted">Precio unitario</span>
+          </div>
+          <div class="modal-qty-panel">
+            <label for="modalQtyInput">Cantidad</label>
+            <div class="qty-control modal-qty-control" aria-label="Cantidad de ${AG.escapeHtml(product.name)}">
+              <button type="button" data-modal-decrease aria-label="Restar cantidad" ${soldOut ? "disabled" : ""}>-</button>
+              <input id="modalQtyInput" type="number" min="${soldOut ? 0 : 1}" max="${product.stock}" value="${state.modalQty}" data-modal-qty aria-label="Cantidad" ${soldOut ? "disabled" : ""}>
+              <button type="button" data-modal-increase aria-label="Sumar cantidad" ${soldOut ? "disabled" : ""}>+</button>
+            </div>
+          </div>
+          <div class="modal-total">
+            <span>Total</span>
+            <strong data-modal-total>${AG.formatPrice(product.price * state.modalQty)}</strong>
+          </div>
+          <button class="btn btn-primary modal-add-btn" type="button" data-modal-add ${soldOut ? "disabled" : ""}>
+            ${soldOut ? "Sin stock" : "Agregar al carrito"}
+          </button>
+        </div>
+      </div>
+    `;
+
+    const qtyInput = elements.productModalContent.querySelector("[data-modal-qty]");
+    const decreaseButton = elements.productModalContent.querySelector("[data-modal-decrease]");
+    const increaseButton = elements.productModalContent.querySelector("[data-modal-increase]");
+    const addButton = elements.productModalContent.querySelector("[data-modal-add]");
+
+    if (decreaseButton) decreaseButton.addEventListener("click", () => updateModalQty(product, state.modalQty - 1));
+    if (increaseButton) increaseButton.addEventListener("click", () => updateModalQty(product, state.modalQty + 1));
+    if (qtyInput) qtyInput.addEventListener("change", () => updateModalQty(product, qtyInput.value));
+    if (addButton) {
+      addButton.addEventListener("click", () => {
+        addToCart(product.id, state.modalQty);
+        closeProductModal();
+      });
+    }
+
+    updateModalQty(product, state.modalQty);
+  }
+
+  function updateModalQty(product, qty) {
+    if (!product || product.stock <= 0) {
+      state.modalQty = 0;
+      return;
+    }
+
+    state.modalQty = Math.max(1, Math.min(Math.round(Number(qty) || 1), product.stock));
+    const qtyInput = elements.productModalContent.querySelector("[data-modal-qty]");
+    const total = elements.productModalContent.querySelector("[data-modal-total]");
+    const decreaseButton = elements.productModalContent.querySelector("[data-modal-decrease]");
+    const increaseButton = elements.productModalContent.querySelector("[data-modal-increase]");
+
+    if (qtyInput) qtyInput.value = state.modalQty;
+    if (total) total.textContent = AG.formatPrice(product.price * state.modalQty);
+    if (decreaseButton) decreaseButton.disabled = state.modalQty <= 1;
+    if (increaseButton) increaseButton.disabled = state.modalQty >= product.stock;
+  }
+
+  function closeProductModal() {
+    elements.productModal.classList.remove("open");
+    elements.productModalBackdrop.classList.remove("open");
+    elements.productModal.setAttribute("aria-hidden", "true");
+    state.activeProductId = null;
+    syncBodyLock();
+  }
+
+  function isProductModalOpen() {
+    return elements.productModal.classList.contains("open");
+  }
+
   function openCart() {
     elements.cartDrawer.classList.add("open");
     elements.cartBackdrop.classList.add("open");
     elements.cartDrawer.setAttribute("aria-hidden", "false");
-    document.body.classList.add("lock-scroll");
+    syncBodyLock();
     elements.closeCart.focus();
   }
 
@@ -255,7 +458,14 @@
     elements.cartDrawer.classList.remove("open");
     elements.cartBackdrop.classList.remove("open");
     elements.cartDrawer.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("lock-scroll");
+    syncBodyLock();
+  }
+
+  function syncBodyLock() {
+    const cartOpen = elements.cartDrawer.classList.contains("open");
+    const modalOpen = isProductModalOpen();
+    document.body.classList.toggle("cart-open", cartOpen);
+    document.body.classList.toggle("lock-scroll", cartOpen || modalOpen);
   }
 
   function clearCart() {
@@ -265,12 +475,91 @@
     renderCart();
   }
 
-  function checkout() {
+  function renderCheckoutSummary(lines = getCartLines(), total = null) {
+    const orderTotal = total ?? lines.reduce((sum, item) => sum + item.qty * item.price, 0);
+    const count = lines.reduce((sum, item) => sum + item.qty, 0);
+    const hasCart = lines.length > 0;
+
+    elements.checkoutTotal.textContent = AG.formatPrice(orderTotal);
+    elements.sendWhatsappButton.disabled = !hasCart;
+    elements.checkoutStatus.textContent = hasCart ? "Listo para completar" : "Agregá productos primero";
+    elements.checkoutStatus.className = `status ${hasCart ? "success" : "error"}`;
+
+    if (!hasCart) {
+      elements.checkoutSummary.innerHTML = `<div class="empty-state">Tu carrito está vacío. Agregá productos desde el catálogo.</div>`;
+      return;
+    }
+
+    elements.checkoutSummary.innerHTML = `
+      <div class="summary-row summary-head">
+        <span>Descripción</span>
+        <span>Cant.</span>
+        <span>Total</span>
+      </div>
+      ${lines.map((item) => `
+        <div class="summary-row">
+          <span>${AG.escapeHtml(item.name)}</span>
+          <span>${item.qty}</span>
+          <strong>${AG.formatPrice(item.price * item.qty)}</strong>
+        </div>
+      `).join("")}
+      <div class="summary-row summary-total-line">
+        <span>Unidades en carrito (${count})</span>
+        <span>${count}</span>
+        <strong>${AG.formatPrice(orderTotal)}</strong>
+      </div>
+    `;
+  }
+
+  function goToCheckout() {
     const lines = getCartLines();
     if (!lines.length) return;
+    closeCart();
+    renderCheckoutSummary(lines);
+    elements.checkoutSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => elements.customerName.focus(), 420);
+  }
+
+  function sendCheckoutToWhatsapp(event) {
+    event.preventDefault();
+    const lines = getCartLines();
+    if (!lines.length) {
+      showToast("Agregá productos al carrito antes de enviar el pedido.");
+      return;
+    }
+
     const total = lines.reduce((sum, item) => sum + item.qty * item.price, 0);
+    if (total < MIN_ORDER_TOTAL) {
+      showToast(`El pedido mínimo es ${AG.formatPrice(MIN_ORDER_TOTAL)}.`);
+      return;
+    }
+
+    if (!elements.checkoutForm.reportValidity()) return;
+
+    const formData = new FormData(elements.checkoutForm);
+    const name = String(formData.get("customerName") || "").trim();
+    const phonePrefix = String(formData.get("phonePrefix") || "").trim();
+    const phone = String(formData.get("customerPhone") || "").trim();
+    const shipping = String(formData.get("shippingMethod") || "").trim();
+    const address = String(formData.get("customerAddress") || "").trim();
+    const comment = String(formData.get("customerComment") || "").trim();
+    const payment = String(formData.get("paymentMethod") || "Efectivo").trim();
     const summary = lines.map((item) => `- ${item.qty} x ${item.name} (${AG.formatPrice(item.price * item.qty)})`).join("\n");
-    const message = `Hola Alta GULA Delivery, quiero hacer este pedido:\n${summary}\n\nTotal: ${AG.formatPrice(total)}\n\nMi nombre y dirección son:`;
+    const message = [
+      "Hola Alta GULA Delivery, quiero hacer este pedido:",
+      summary,
+      "",
+      `Total: ${AG.formatPrice(total)}`,
+      "",
+      "Datos del pedido:",
+      `Nombre: ${name}`,
+      `Teléfono: ${phonePrefix} ${phone}`,
+      `Envío: ${shipping}`,
+      `Dirección: ${address}`,
+      `Pago: ${payment}`,
+      comment ? `Comentario: ${comment}` : "Comentario: -"
+    ].join("\n");
+
     window.open(`https://wa.me/${AG.whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
   }
 
