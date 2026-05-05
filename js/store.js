@@ -8,6 +8,7 @@
     cart: [],
     category: "Todos",
     query: "",
+    catalogError: false,
     activeProductId: null,
     modalQty: 1
   };
@@ -49,7 +50,6 @@
       toast: $("#toast")
     });
 
-    state.products = AG.visibleProducts();
     state.cart = AG.getCart();
     renderFilters();
     renderProducts();
@@ -81,10 +81,6 @@
       }
     });
 
-    window.addEventListener("altaGula:productsChanged", () => {
-      state.products = AG.visibleProducts();
-      renderProducts();
-    });
   }
 
   function renderFilters() {
@@ -135,20 +131,28 @@
 
   async function loadSheetProducts() {
     try {
+      state.catalogError = false;
       state.products = (await AG.syncFromSheet(AG.DEFAULT_SHEET_URL)).filter((product) => product.visible);
       renderFilters();
       renderProducts();
       renderCart();
     } catch (error) {
       console.error(error);
-      if (!state.products.length) showToast("No se pudo cargar la hoja de productos.");
+      state.products = [];
+      state.catalogError = true;
+      renderProducts();
+      renderCart();
+      showToast("No se pudo cargar la hoja de productos.");
     }
   }
 
   function renderProducts() {
     const products = getFilteredProducts();
     if (!products.length) {
-      elements.grid.innerHTML = `<div class="empty-state">No encontramos productos con esos filtros.</div>`;
+      const message = state.catalogError
+        ? "No se pudo cargar la hoja de productos."
+        : (state.query ? "No encontramos productos con esos filtros." : "Cargando productos desde la hoja de cálculo...");
+      elements.grid.innerHTML = `<div class="empty-state">${message}</div>`;
       return;
     }
 
@@ -279,7 +283,7 @@
   function getCartLines() {
     return state.cart
       .map((item) => {
-        const product = state.products.find((candidate) => candidate.id === item.id) || AG.getProducts().find((candidate) => candidate.id === item.id);
+        const product = state.products.find((candidate) => candidate.id === item.id);
         return product ? { ...product, qty: Math.min(item.qty, product.stock) } : null;
       })
       .filter(Boolean)
