@@ -1,19 +1,21 @@
 <!doctype html>
 <html lang="es-AR">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Alta GULA Delivery: tienda online de golosinas, chocolates, bebidas y snacks con pedidos por WhatsApp.">
-    <meta name="theme-color" content="#271F15">
-    <meta property="og:title" content="Alta GULA Delivery">
-    <meta property="og:description" content="Golosinas, chocolates, bebidas y snacks directo a tu puerta.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/alta-gula-logo.png">
-    <title>Alta GULA Delivery | Tienda de golosinas</title>
-    <link rel="icon" href="assets/alta-gula-logo.png">
-    <link rel="stylesheet" href="css/shared.css">
-    <link rel="stylesheet" href="css/store.css">
-    <script type="application/ld+json">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Alta GULA Delivery: tienda online de golosinas, chocolates, bebidas y snacks con pedidos por WhatsApp.">
+  <meta name="theme-color" content="#271F15">
+  <meta property="og:title" content="Alta GULA Delivery">
+  <meta property="og:description" content="Golosinas, chocolates, bebidas y snacks directo a tu puerta.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/alta-gula-logo.png">
+  <title>Alta GULA Delivery | Tienda de golosinas</title>
+  <link rel="icon" href="assets/alta-gula-logo.png">
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/store.css">
+  <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Store",
@@ -22,142 +24,246 @@
         "telephone": "+54 9 3464 000000",
         "priceRange": "$$",
         "description": "Tienda de golosinas, chocolates, bebidas y snacks con entrega a domicilio.",
-        "openingHours": "Mo-Su 10:00-23:00",
+        "openingHours": [
+          "We-Th 08:00-01:00",
+          "Fr-Sa 08:00-03:00",
+          "Su 08:00-01:00"
+        ],
         "address": {
           "@type": "PostalAddress",
           "addressCountry": "AR"
         }
       }
     </script>
-  </head>
-  <body>
-    <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
-    <header class="site-header">
-      <div class="container header-inner">
-        <a class="brand" href="#inicio" aria-label="Alta GULA Delivery inicio">
-          <img class="brand-logo header-logo" src="assets/alta-gula-logo-header.png" alt="">
-        </a>
-        <nav class="nav-links" aria-label="Principal">
-          <a href="#inicio">Inicio</a>
-          <a href="#catalogo">Productos</a>
-          <a href="#contacto">Contacto</a>
-        </nav>
-        <div class="header-actions">
-          <button class="icon-btn" id="themeToggle" type="button" aria-label="Cambiar tema">◐</button>
-          <a class="btn btn-secondary" href="https://wa.me/5493464000000" target="_blank" rel="noopener">WhatsApp</a>
-          <button class="icon-btn" id="cartButton" type="button" aria-label="Abrir carrito">
-            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="8" cy="21" r="1"></circle>
-              <circle cx="19" cy="21" r="1"></circle>
-              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h8.74a2 2 0 0 0 1.95-1.57l1.35-6.08H5.12"></path>
-            </svg>
-            <span class="badge cart-count" id="cartCount">0</span>
-          </button>
+</head>
+
+<body class="store-page">
+  <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="Alta GULA Delivery inicio">
+        <img class="brand-logo header-logo" src="assets/alta-gula-logo-header.png" alt="">
+      </a>
+      <nav class="nav-links" aria-label="Principal">
+        <a href="#inicio">Inicio</a>
+        <a href="#catalogo">Productos</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-secondary" href="https://wa.me/5493464000000" target="_blank" rel="noopener">WhatsApp</a>
+        <button class="icon-btn" id="cartButton" type="button" aria-label="Abrir carrito">
+          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="8" cy="21" r="1"></circle>
+            <circle cx="19" cy="21" r="1"></circle>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h8.74a2 2 0 0 0 1.95-1.57l1.35-6.08H5.12"></path>
+          </svg>
+          <span class="badge cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="inicio" class="site-main">
+    <span class="bg-orb bg-orb-1"></span>
+    <span class="bg-orb bg-orb-2"></span>
+    <span class="bg-orb bg-orb-3"></span>
+
+    <section class="hours-banner" aria-label="Horarios de atención">
+      <div class="hours-track">
+        <div class="hours-group">
+          <span>🔥LUNES A JUEVES DE 20:00 A 01:00 HS 🔥</span>
+          <span>🔥VIERNES Y SABADOS DE 20:00 A 04:00 HS 🔥</span>
+          <span>🔥DOMINGOS DE 20:00 A 02:00 HS 🔥</span>
+        </div>
+        <div class="hours-group" aria-hidden="true">
+          <span>🔥LUNES A JUEVES DE 20:00 A 01:00 HS 🔥</span>
+          <span>🔥VIERNES Y SABADOS DE 20:00 A 04:00 HS 🔥</span>
+          <span>🔥DOMINGOS DE 20:00 A 02:00 HS 🔥</span>
         </div>
       </div>
-    </header>
+    </section>
 
-    <main id="inicio">
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-copy">
-            <p class="eyebrow">Golosinas a domicilio</p>
-            <h1>Alta GULA Delivery</h1>
-            <p>Antojos, chocolates, bebidas frías y snacks listos para pedir por WhatsApp. Elegí tus productos, armá el carrito y enviá el resumen en un toque.</p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="#catalogo">Ver productos</a>
-              <a class="btn btn-ghost" href="https://wa.me/5493464000000" target="_blank" rel="noopener">Contactar</a>
-            </div>
-            <div class="hero-pills" aria-label="Información destacada">
-              <span class="pill">Todos los días 10 a 23 hs</span>
-              <span class="pill">Delivery local</span>
-              <span class="pill">Pedidos por WhatsApp</span>
-            </div>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Golosinas a domicilio</p>
+          <h1>Alta GULA Delivery</h1>
+          <p>Antojos, chocolates, bebidas frías y snacks listos para pedir por WhatsApp. Elegí tus productos, armá el
+            carrito y enviá el resumen en un toque.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#catalogo">Ver productos</a>
+            <a class="btn btn-ghost" href="https://wa.me/5493464000000" target="_blank" rel="noopener">Contactar</a>
           </div>
-          <div class="hero-visual" aria-hidden="true">
-            <img class="hero-logo" src="assets/alta-gula-logo.png" alt="">
+          <div class="hero-pills" aria-label="Información destacada">
+            <span class="pill">Delivery local</span>
+            <span class="pill">Pedidos por WhatsApp</span>
           </div>
         </div>
-      </section>
-
-      <section class="section" id="catalogo" aria-labelledby="catalogTitle">
-        <div class="container">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Catálogo</p>
-              <h2 id="catalogTitle">Elegí tus favoritos</h2>
-              <p class="muted">Filtrá por categoría o buscá por nombre para armar tu pedido.</p>
-            </div>
-            <div class="catalog-tools">
-              <label class="sr-only" for="productSearch">Buscar productos</label>
-              <input class="input" id="productSearch" type="search" placeholder="Buscar producto..." autocomplete="off">
-            </div>
-          </div>
-          <div class="category-filters" id="categoryFilters" aria-label="Categorías"></div>
-          <div class="products-grid" id="productsGrid" aria-live="polite"></div>
+        <div class="hero-visual" aria-hidden="true">
+          <img class="hero-logo" src="assets/alta-gula-logo.png" alt="">
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
 
-    <footer class="site-footer" id="contacto">
+    <section class="section" id="catalogo" aria-labelledby="catalogTitle">
       <div class="container">
-        <div class="footer-grid">
+        <div class="section-head">
           <div>
-            <a class="brand" href="#inicio" aria-label="Alta GULA Delivery inicio">
-              <img class="brand-logo" src="assets/alta-gula-logo.png" alt="">
-              <span class="brand-name"><span>Alta GULA</span><span>Delivery</span></span>
-            </a>
-            <p>Tu tienda de golosinas para resolver antojos con entrega rápida y pedido simple por WhatsApp.</p>
+            <p class="eyebrow">Catálogo</p>
+            <h2 id="catalogTitle">Elegí tus favoritos</h2>
+            <p class="muted">Filtrá por categoría o buscá por nombre para armar tu pedido.</p>
           </div>
-          <div>
-            <h3>Contacto</h3>
-            <ul class="footer-list">
-              <li><a href="https://wa.me/5493464000000" target="_blank" rel="noopener">+54 9 3464 000000</a></li>
-              <li><a href="mailto:pedidos@altagula.local">pedidos@altagula.local</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3>Horarios</h3>
-            <ul class="footer-list">
-              <li>Lunes a domingo</li>
-              <li>10:00 a 23:00 hs</li>
-            </ul>
-          </div>
-          <div>
-            <h3>Redes</h3>
-            <ul class="footer-list">
-              <li><a href="#" aria-label="Instagram de Alta GULA Delivery">Instagram</a></li>
-              <li><a href="#" aria-label="Facebook de Alta GULA Delivery">Facebook</a></li>
-              <li>Ubicación: zona de delivery local</li>
-            </ul>
+          <div class="catalog-tools">
+            <label class="sr-only" for="productSearch">Buscar productos</label>
+            <input class="input" id="productSearch" type="search" placeholder="Buscar producto..." autocomplete="off">
           </div>
         </div>
-        <div class="footer-bottom">
-          <span>© 2026 Alta GULA Delivery</span>
-          <span>Carrito con cache local y pedidos por WhatsApp</span>
-        </div>
+        <div class="category-filters" id="categoryFilters" aria-label="Categorías"></div>
+        <div class="products-grid" id="productsGrid" aria-live="polite"></div>
       </div>
-    </footer>
+    </section>
 
-    <div class="drawer-backdrop" id="cartBackdrop"></div>
-    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true" aria-label="Carrito de compras">
-      <div class="drawer-head">
-        <h2>Tu pedido</h2>
-        <button class="icon-btn" id="closeCart" type="button" aria-label="Cerrar carrito">×</button>
-      </div>
-      <div class="drawer-items" id="cartItems" aria-live="polite"></div>
-      <div class="drawer-footer">
-        <div class="cart-total">
-          <span>Total</span>
-          <strong id="cartTotal">$0</strong>
+    <section class="section checkout-section" id="checkout" aria-labelledby="checkoutTitle">
+      <div class="container checkout-shell">
+        <div class="section-head checkout-head">
+          <div>
+            <p class="eyebrow">Finalizar pedido</p>
+            <h2 id="checkoutTitle">Completá tus datos</h2>
+            <p class="muted">Revisamos el carrito, sumamos tus datos y armamos el mensaje listo para enviar por
+              WhatsApp.</p>
+          </div>
+          <span class="status" id="checkoutStatus">Esperando carrito</span>
         </div>
-        <button class="btn btn-primary" id="checkoutButton" type="button">Procesar compra por WhatsApp</button>
-        <button class="btn btn-ghost" id="clearCartButton" type="button">Vaciar carrito</button>
-      </div>
-    </aside>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="js/products.js"></script>
-    <script src="js/store.js"></script>
-  </body>
+        <div class="checkout-grid">
+          <form class="checkout-form" id="checkoutForm">
+            <div class="form-grid two-columns">
+              <div class="field">
+                <label for="customerName">Nombre y apellido (*)</label>
+                <input class="input" id="customerName" name="customerName" type="text" autocomplete="name" required>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="shippingMethod">Seleccioná envío (*)</label>
+                <select class="select" id="shippingMethod" name="shippingMethod" required>
+                  <option value="Delivery">Delivery</option>
+                  <option value="Retiro">Retiro local</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="customerAddress">Dirección de envío (*)</label>
+                <textarea class="textarea" id="customerAddress" name="customerAddress" autocomplete="street-address"
+                  required></textarea>
+              </div>
+              <div class="field">
+                <label for="customerComment">Dejanos tu comentario</label>
+                <textarea class="textarea" id="customerComment" name="customerComment"
+                  placeholder="Piso, referencias, horario ideal o aclaraciones del pedido."></textarea>
+              </div>
+            </div>
+          </form>
+
+          <aside class="checkout-summary" aria-label="Resumen del pedido">
+            <div class="summary-table" id="checkoutSummary" aria-live="polite"></div>
+            <div class="payment-box">
+              <span class="payment-title">Método de pago</span>
+              <label class="radio-row">
+                <input type="radio" name="paymentMethod" value="Efectivo" form="checkoutForm" checked>
+                <span>Efectivo</span>
+              </label>
+              <label class="radio-row">
+                <input type="radio" name="paymentMethod" value="Transferencia" form="checkoutForm">
+                <span>Transferencia</span>
+              </label>
+              <div class="transfer-info">
+                Santiago Kinderknecht<br>
+                CVU: 00000031000085328293079<br>
+                Alias: santi.kinder<br>
+                Mercado Pago
+              </div>
+            </div>
+            <div class="checkout-total-box">
+              <span>Total de tu orden</span>
+              <strong id="checkoutTotal">$0</strong>
+              <small>El monto mínimo para pedidos es de $1.000. Se requiere WhatsApp móvil o web para enviar el
+                mensaje.</small>
+              <button class="btn btn-primary checkout-send" id="sendWhatsappButton" type="submit" form="checkoutForm">
+                Enviar pedido por WhatsApp
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contacto">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="brand" href="#inicio" aria-label="Alta GULA Delivery inicio">
+            <img class="brand-logo" src="assets/alta-gula-logo.png" alt="">
+            <span class="brand-name"><span>Alta GULA</span><span>Delivery</span></span>
+          </a>
+          <p>Tu tienda de golosinas para resolver antojos con entrega rápida y pedido simple por WhatsApp.</p>
+        </div>
+        <div>
+          <h3>Contacto</h3>
+          <ul class="footer-list">
+            <li><a href="https://wa.me/5493464000000" target="_blank" rel="noopener">+54 9 3464 000000</a></li>
+            <li><a href="mailto:pedidos@altagula.local">pedidos@altagula.local</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Redes</h3>
+          <ul class="footer-list">
+            <li><a href="#" aria-label="Instagram de Alta GULA Delivery">Instagram</a></li>
+            <li><a href="#" aria-label="Facebook de Alta GULA Delivery">Facebook</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Alta GULA Delivery</span>
+        <span>Catálogo desde hoja de cálculo y pedidos por WhatsApp</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="drawer-backdrop" id="cartBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-hidden="true" aria-label="Carrito de compras">
+    <div class="drawer-head">
+      <h2>Tu pedido</h2>
+      <button class="icon-btn" id="closeCart" type="button" aria-label="Cerrar carrito">×</button>
+    </div>
+    <div class="drawer-items" id="cartItems" aria-live="polite"></div>
+    <div class="drawer-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <strong id="cartTotal">$0</strong>
+      </div>
+      <button class="btn btn-primary" id="checkoutButton" type="button">Completar datos del pedido</button>
+      <button class="btn btn-ghost" id="clearCartButton" type="button">Vaciar carrito</button>
+    </div>
+  </aside>
+  <button class="mobile-cart-summary" id="mobileCartSummary" type="button" aria-label="Abrir carrito" hidden>
+    <span class="mobile-cart-copy">
+      <span class="mobile-cart-label">Tu carrito</span>
+      <strong id="mobileCartCount">0 productos</strong>
+    </span>
+    <span class="mobile-cart-total" id="mobileCartTotal">$0</span>
+  </button>
+  <div class="product-modal-backdrop" id="productModalBackdrop"></div>
+  <section class="product-modal" id="productModal" role="dialog" aria-modal="true" aria-hidden="true"
+    aria-labelledby="productModalTitle">
+    <button class="icon-btn modal-close" id="closeProductModal" type="button" aria-label="Cerrar detalle">×</button>
+    <div class="product-modal-content" id="productModalContent"></div>
+  </section>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/products.js"></script>
+  <script src="js/store.js"></script>
+</body>
+
 </html>

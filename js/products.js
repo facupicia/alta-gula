@@ -1,72 +1,11 @@
 (function () {
   "use strict";
 
-  const PRODUCT_KEY = "altaGula.products";
-  const CART_KEY = "altaGula.cart";
-  const SHEET_URL_KEY = "altaGula.sheetUrl";
-  const LAST_SYNC_KEY = "altaGula.lastSync";
-  const THEME_KEY = "altaGula.theme";
-  const ADMIN_SESSION_KEY = "altaGula.adminSession";
   const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtysB1M_oNpuXveauerVx3N7ujqdVXBAkkc4uw4cTXmCsNl6_flTMNLERs3PSE_EibVjNbpuYPVIX1/pub?output=csv";
 
   const categories = ["Golosinas", "Chocolates", "Bebidas", "Snacks", "Combos"];
-  const defaultProducts = [
-    {
-      id: "papas-lays",
-      name: "Papas lays",
-      description: "",
-      price: 4000,
-      category: "Snacks",
-      stock: 999,
-      stockManaged: false,
-      imageUrl: "",
-      visible: true
-    },
-    {
-      id: "gomitas",
-      name: "Gomitas",
-      description: "",
-      price: 2500,
-      category: "Golosinas",
-      stock: 999,
-      stockManaged: false,
-      imageUrl: "",
-      visible: true
-    },
-    {
-      id: "coca-cola",
-      name: "Coca cola",
-      description: "",
-      price: 4800,
-      category: "Bebidas",
-      stock: 999,
-      stockManaged: false,
-      imageUrl: "",
-      visible: true
-    },
-    {
-      id: "fernet-coca",
-      name: "Fernet + coca",
-      description: "",
-      price: 18000,
-      category: "Combos",
-      stock: 999,
-      stockManaged: false,
-      imageUrl: "",
-      visible: true
-    }
-  ];
   const whatsappNumber = "5493464000000";
-
-
-  function safeJsonParse(value, fallback) {
-    try {
-      return value ? JSON.parse(value) : fallback;
-    } catch (error) {
-      console.warn("No se pudo leer localStorage", error);
-      return fallback;
-    }
-  }
+  let cart = [];
 
   function slugify(value) {
     return String(value || "producto")
@@ -76,10 +15,6 @@
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
       .slice(0, 48) || "producto";
-  }
-
-  function uid(base) {
-    return `${slugify(base)}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
   }
 
   function toNumber(value) {
@@ -127,39 +62,6 @@
       visible: normalizeVisible(raw.visible ?? raw.Visible ?? raw["Visible"] ?? status),
       updatedAt: raw.updatedAt || raw["Actualizado"] || now
     };
-  }
-
-  function getProducts() {
-    const products = safeJsonParse(localStorage.getItem(PRODUCT_KEY), null);
-    if (Array.isArray(products) && products.length) {
-      return products.map(normalizeProduct);
-    }
-    saveProducts(defaultProducts);
-    return defaultProducts;
-  }
-
-  function saveProducts(products) {
-    const normalized = products.map(normalizeProduct);
-    localStorage.setItem(PRODUCT_KEY, JSON.stringify(normalized));
-    window.dispatchEvent(new CustomEvent("altaGula:productsChanged", { detail: normalized }));
-    return normalized;
-  }
-
-  function upsertProduct(product) {
-    const products = getProducts();
-    const normalized = normalizeProduct({ ...product, id: product.id || uid(product.name), updatedAt: new Date().toISOString() }, products.length);
-    const index = products.findIndex((item) => item.id === normalized.id);
-    if (index >= 0) products[index] = normalized;
-    else products.unshift(normalized);
-    return saveProducts(products);
-  }
-
-  function deleteProduct(id) {
-    return saveProducts(getProducts().filter((product) => product.id !== id));
-  }
-
-  function visibleProducts() {
-    return getProducts().filter((product) => product.visible);
   }
 
   function parseCsv(text) {
@@ -244,17 +146,15 @@
     const products = rows.map(normalizeProduct).filter((product) => product.name);
     if (!products.length) throw new Error("No se encontraron filas válidas.");
 
-    localStorage.setItem(SHEET_URL_KEY, url);
-    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
-    return saveProducts(products);
+    return products;
   }
 
   function getCart() {
-    return safeJsonParse(localStorage.getItem(CART_KEY), []);
+    return cart;
   }
 
-  function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  function saveCart(nextCart) {
+    cart = nextCart;
     window.dispatchEvent(new CustomEvent("altaGula:cartChanged", { detail: cart }));
     return cart;
   }
@@ -272,36 +172,17 @@
     return String(value ?? "").replace(/[&<>"']/g, (char) => map[char]);
   }
 
-  function applyTheme(theme) {
-    const selected = theme || localStorage.getItem(THEME_KEY) || "dark";
-    document.documentElement.dataset.theme = selected;
-    localStorage.setItem(THEME_KEY, selected);
-    return selected;
-  }
-
-  function toggleTheme() {
-    return applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+  function applyTheme() {
+    document.documentElement.dataset.theme = "dark";
+    return "dark";
   }
 
   window.AltaGula = {
-    PRODUCT_KEY,
-    CART_KEY,
-    SHEET_URL_KEY,
-    LAST_SYNC_KEY,
-    THEME_KEY,
-    ADMIN_SESSION_KEY,
     DEFAULT_SHEET_URL,
     categories,
     whatsappNumber,
-    defaultProducts,
-    uid,
     slugify,
     normalizeProduct,
-    getProducts,
-    saveProducts,
-    upsertProduct,
-    deleteProduct,
-    visibleProducts,
     parseCsv,
     syncFromSheet,
     sheetUrlToCsv,
@@ -309,8 +190,7 @@
     saveCart,
     formatPrice,
     escapeHtml,
-    applyTheme,
-    toggleTheme
+    applyTheme
   };
 
   applyTheme();
