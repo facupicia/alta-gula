@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#271F15">
+    <title>Admin | Alta GULA Delivery</title>
+    <link rel="icon" href="assets/alta-gula-logo.png">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/admin.css">
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <a class="brand" href="index.html" aria-label="Volver a la tienda">
+          <img class="brand-logo" src="assets/alta-gula-logo.png" alt="">
+          <span class="brand-name"><span>Alta GULA</span><span>Admin</span></span>
+        </a>
+        <nav class="admin-nav" aria-label="Administración">
+          <a href="#dashboard">Dashboard</a>
+          <a href="#sync">Sincronización</a>
+          <a href="#products">Productos</a>
+          <a href="index.html">Ver tienda</a>
+        </nav>
+        <button class="btn btn-ghost" id="logoutButton" type="button">Cerrar sesión</button>
+      </aside>
+
+      <main class="admin-main">
+        <div class="admin-topbar">
+          <div>
+            <p class="eyebrow">Panel privado</p>
+            <h1>Gestión de tienda</h1>
+          </div>
+          <button class="icon-btn" id="themeToggle" type="button" aria-label="Cambiar tema">◐</button>
+        </div>
+
+        <section id="dashboard" aria-labelledby="dashboardTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="dashboardTitle">Dashboard</h2>
+              <p class="muted">Resumen rápido de productos y stock.</p>
+            </div>
+            <span class="status success" id="syncStatus">Sincronizado</span>
+          </div>
+          <div class="stats-grid">
+            <article class="stat-card"><span>Total productos</span><strong id="totalProducts">0</strong></article>
+            <article class="stat-card"><span>Visibles</span><strong id="visibleProducts">0</strong></article>
+            <article class="stat-card"><span>Ocultos</span><strong id="hiddenProducts">0</strong></article>
+            <article class="stat-card"><span>Stock total</span><strong id="totalStock">0</strong></article>
+          </div>
+        </section>
+
+        <section class="admin-section" id="sync" aria-labelledby="syncTitle">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2 id="syncTitle">Google Sheets</h2>
+                <p class="muted">Pegá la URL publicada como CSV, o una URL de hoja pública. Columnas: Nombre del producto, Descripción, Precio, Categoría, Stock, URL de imagen, Visible.</p>
+              </div>
+            </div>
+            <form class="sync-grid" id="syncForm">
+              <div class="field">
+                <label for="sheetUrl">URL de hoja publicada</label>
+                <input class="input" id="sheetUrl" name="sheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
+              </div>
+              <button class="btn btn-primary" type="submit">Sincronizar</button>
+            </form>
+            <p class="muted">Última actualización: <span id="lastSync">Sin sincronizaciones todavía</span></p>
+          </div>
+        </section>
+
+        <section class="admin-section" id="products" aria-labelledby="productsTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="productsTitle">Gestión de productos</h2>
+              <p class="muted">Agregá, editá, ocultá o eliminá productos sin recargar la página.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2 id="formTitle">Agregar producto</h2>
+            </div>
+            <form id="productForm" novalidate>
+              <input type="hidden" id="productId">
+              <div class="form-grid">
+                <div class="field">
+                  <label for="name">Nombre</label>
+                  <input class="input" id="name" name="name" required minlength="2" maxlength="80">
+                </div>
+                <div class="field">
+                  <label for="price">Precio</label>
+                  <input class="input" id="price" name="price" required type="number" min="0" step="1">
+                </div>
+                <div class="field">
+                  <label for="category">Categoría</label>
+                  <select class="select" id="category" name="category" required></select>
+                </div>
+                <div class="field">
+                  <label for="stock">Stock</label>
+                  <input class="input" id="stock" name="stock" required type="number" min="0" step="1">
+                </div>
+                <div class="field full">
+                  <label for="imageUrl">URL de imagen</label>
+                  <input class="input" id="imageUrl" name="imageUrl" type="url" placeholder="https://...">
+                </div>
+                <div class="field full">
+                  <label for="description">Descripción</label>
+                  <textarea class="textarea" id="description" name="description" maxlength="180"></textarea>
+                </div>
+                <div class="field">
+                  <label>
+                    <input id="visible" name="visible" type="checkbox" checked>
+                    Visible en tienda
+                  </label>
+                </div>
+                <div class="image-preview" id="imagePreview">La vista previa de imagen aparece acá.</div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Guardar producto</button>
+                <button class="btn btn-ghost" id="cancelEdit" type="button" hidden>Cancelar edición</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="panel admin-section">
+            <div class="panel-head">
+              <h2>Listado</h2>
+            </div>
+            <div class="products-admin-list" id="productList" aria-live="polite"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="login-overlay" id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <form class="login-card" id="loginForm">
+        <div class="brand">
+          <img class="brand-logo" src="assets/alta-gula-logo.png" alt="">
+          <span class="brand-name"><span>Alta GULA</span><span>Admin</span></span>
+        </div>
+        <h1 id="loginTitle">Acceso privado</h1>
+        <p class="muted">Ingresá la clave local del panel.</p>
+        <div class="field">
+          <label for="adminPassword">Clave</label>
+          <input class="input" id="adminPassword" type="password" autocomplete="current-password" required>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Ingresar</button>
+          <a class="btn btn-ghost" href="index.html">Volver a tienda</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
+    <script src="js/products.js"></script>
+    <script src="js/admin.js"></script>
+  </body>
+</html>
