@@ -45,11 +45,12 @@
     });
 
     state.products = AG.getProducts();
-    elements.sheetUrl.value = localStorage.getItem(AG.SHEET_URL_KEY) || "";
+    elements.sheetUrl.value = AG.DEFAULT_SHEET_URL;
     populateCategories();
     renderAll();
     bindEvents();
     checkSession();
+    syncDefaultSheet();
   }
 
   function bindEvents() {
@@ -161,6 +162,19 @@
       state.products = await AG.syncFromSheet(elements.sheetUrl.value);
       setSyncStatus("success", "Sincronizado");
       showToast("Productos importados desde Google Sheets.");
+    } catch (error) {
+      console.error(error);
+      setSyncStatus("error", "Error de sincronización");
+      showToast(error.message || "No se pudo sincronizar la hoja.");
+    }
+    renderAll();
+  }
+
+  async function syncDefaultSheet() {
+    setSyncStatus("syncing", "Sincronizando");
+    try {
+      state.products = await AG.syncFromSheet(AG.DEFAULT_SHEET_URL);
+      setSyncStatus("success", "Sincronizado");
     } catch (error) {
       console.error(error);
       setSyncStatus("error", "Error de sincronización");

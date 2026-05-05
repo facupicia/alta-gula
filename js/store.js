@@ -39,6 +39,7 @@
     renderProducts();
     renderCart();
     bindEvents();
+    loadSheetProducts();
   }
 
   function bindEvents() {
@@ -99,6 +100,18 @@
     return `<span class="${className}">${AG.escapeHtml(product.category.slice(0, 1))}</span>`;
   }
 
+  async function loadSheetProducts() {
+    try {
+      state.products = (await AG.syncFromSheet(AG.DEFAULT_SHEET_URL)).filter((product) => product.visible);
+      renderFilters();
+      renderProducts();
+      renderCart();
+    } catch (error) {
+      console.error(error);
+      if (!state.products.length) showToast("No se pudo cargar la hoja de productos.");
+    }
+  }
+
   function renderProducts() {
     const products = getFilteredProducts();
     if (!products.length) {
@@ -112,7 +125,7 @@
         <article class="product-card">
           <div class="product-media">
             ${productImage(product, "product-fallback")}
-            <span class="stock-label ${soldOut ? "sold-out" : ""}">${soldOut ? "Agotado" : `${product.stock} disp.`}</span>
+            <span class="stock-label ${soldOut ? "sold-out" : ""}">${soldOut ? "Agotado" : (product.stockManaged ? `${product.stock} disp.` : "En stock")}</span>
           </div>
           <div class="product-body">
             <span class="product-kicker">${AG.escapeHtml(product.category)}</span>

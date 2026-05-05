@@ -7,56 +7,57 @@
   const LAST_SYNC_KEY = "altaGula.lastSync";
   const THEME_KEY = "altaGula.theme";
   const ADMIN_SESSION_KEY = "altaGula.adminSession";
+  const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtysB1M_oNpuXveauerVx3N7ujqdVXBAkkc4uw4cTXmCsNl6_flTMNLERs3PSE_EibVjNbpuYPVIX1/pub?output=csv";
 
-  const categories = ["Golosinas", "Chocolates", "Bebidas", "Snacks"];
-  const whatsappNumber = "5493464000000";
-
+  const categories = ["Golosinas", "Chocolates", "Bebidas", "Snacks", "Combos"];
   const defaultProducts = [
     {
-      id: "gomitas-frutales",
-      name: "Gomitas frutales",
-      description: "Mix colorido de gomitas dulces por 100 g.",
-      price: 850,
-      category: "Golosinas",
-      stock: 24,
-      imageUrl: "",
-      visible: true,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: "chocolate-relleno",
-      name: "Chocolate relleno",
-      description: "Tableta cremosa con relleno dulce.",
-      price: 1250,
-      category: "Chocolates",
-      stock: 16,
-      imageUrl: "",
-      visible: true,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: "gaseosa-lata",
-      name: "Gaseosa lata",
-      description: "Bebida fría en lata de 354 ml.",
-      price: 980,
-      category: "Bebidas",
-      stock: 32,
-      imageUrl: "",
-      visible: true,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: "papas-clasicas",
-      name: "Papas clásicas",
-      description: "Snack crocante para acompañar cualquier pedido.",
-      price: 1100,
+      id: "papas-lays",
+      name: "Papas lays",
+      description: "",
+      price: 4000,
       category: "Snacks",
-      stock: 0,
+      stock: 999,
+      stockManaged: false,
       imageUrl: "",
-      visible: true,
-      updatedAt: new Date().toISOString()
+      visible: true
+    },
+    {
+      id: "gomitas",
+      name: "Gomitas",
+      description: "",
+      price: 2500,
+      category: "Golosinas",
+      stock: 999,
+      stockManaged: false,
+      imageUrl: "",
+      visible: true
+    },
+    {
+      id: "coca-cola",
+      name: "Coca cola",
+      description: "",
+      price: 4800,
+      category: "Bebidas",
+      stock: 999,
+      stockManaged: false,
+      imageUrl: "",
+      visible: true
+    },
+    {
+      id: "fernet-coca",
+      name: "Fernet + coca",
+      description: "",
+      price: 18000,
+      category: "Combos",
+      stock: 999,
+      stockManaged: false,
+      imageUrl: "",
+      visible: true
     }
   ];
+  const whatsappNumber = "5493464000000";
+
 
   function safeJsonParse(value, fallback) {
     try {
@@ -95,7 +96,7 @@
   function normalizeVisible(value) {
     if (typeof value === "boolean") return value;
     const normalized = String(value || "si").trim().toLowerCase();
-    return !["no", "false", "0", "oculto", "hidden"].includes(normalized);
+    return !["no", "false", "0", "oculto", "hidden", "inactivo"].includes(normalized);
   }
 
   function normalizeCategory(value) {
@@ -104,18 +105,26 @@
   }
 
   function normalizeProduct(raw, index) {
-    const name = String(raw.name || raw.nombre || raw["Nombre del producto"] || raw["Nombre"] || "").trim();
+    const name = String(raw.name || raw.nombre || raw["Nombre del elemento"] || raw["Nombre del producto"] || raw["Nombre"] || "").trim();
+    const stockValue = raw.stock ?? raw.Stock;
+    const status = String(raw.status || raw.estado || raw.Estado || "").trim();
+    const normalizedStatus = status.toLowerCase();
+    const stockIsManaged = typeof raw.stockManaged === "boolean" ? raw.stockManaged : String(stockValue ?? "").trim() !== "";
+    const stock = stockIsManaged
+      ? Math.max(0, Math.round(toNumber(stockValue)))
+      : (normalizedStatus.includes("sin stock") || normalizedStatus.includes("agotado") ? 0 : 999);
     const now = new Date().toISOString();
 
     return {
-      id: String(raw.id || raw.ID || slugify(name) || `producto-${index + 1}`),
+      id: String(raw.id || raw.ID || raw["ID de artículo"] || raw["ID de articulo"] || slugify(name) || `producto-${index + 1}`),
       name: name || `Producto ${index + 1}`,
       description: String(raw.description || raw.descripcion || raw["Descripción"] || raw["Descripcion"] || "").trim(),
       price: Math.max(0, toNumber(raw.price || raw.precio || raw["Precio"])),
-      category: normalizeCategory(raw.category || raw.categoria || raw["Categoría"] || raw["Categoria"]),
-      stock: Math.max(0, Math.round(toNumber(raw.stock || raw["Stock"]))),
-      imageUrl: String(raw.imageUrl || raw.imagen || raw["URL de imagen"] || raw["Imagen"] || "").trim(),
-      visible: normalizeVisible(raw.visible ?? raw.Visible ?? raw["Visible"]),
+      category: normalizeCategory(raw.category || raw.categoria || raw["Tipo"] || raw["Categoría"] || raw["Categoria"]),
+      stock,
+      stockManaged: stockIsManaged,
+      imageUrl: String(raw.imageUrl || raw.imagen || raw["Fotos del producto"] || raw["URL de imagen"] || raw["Imagen"] || "").trim(),
+      visible: normalizeVisible(raw.visible ?? raw.Visible ?? raw["Visible"] ?? status),
       updatedAt: raw.updatedAt || raw["Actualizado"] || now
     };
   }
@@ -197,7 +206,7 @@
   }
 
   function sheetUrlToCsv(url) {
-    const value = String(url || "").trim();
+    const value = String(url || DEFAULT_SHEET_URL).trim();
     if (!value) throw new Error("Configurá la URL publicada de Google Sheets.");
     if (value.includes("/pubhtml")) {
       const csvUrl = value.replace("/pubhtml", "/pub").replace(/([?&])output=[^&]+/, "$1output=csv");
@@ -208,12 +217,12 @@
     }
     const match = value.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if (match && value.includes("/edit")) {
-      return `https://docs.google.com/spreadsheets/d/${match[1]}/gviz/tq?tqx=out:csv`;
+      return DEFAULT_SHEET_URL;
     }
     return value;
   }
 
-  async function syncFromSheet(url) {
+  async function syncFromSheet(url = DEFAULT_SHEET_URL) {
     const requestUrl = sheetUrlToCsv(url);
     const response = await fetch(requestUrl, { cache: "no-store" });
     if (!response.ok) throw new Error(`Google Sheets respondió ${response.status}`);
@@ -281,6 +290,7 @@
     LAST_SYNC_KEY,
     THEME_KEY,
     ADMIN_SESSION_KEY,
+    DEFAULT_SHEET_URL,
     categories,
     whatsappNumber,
     defaultProducts,
