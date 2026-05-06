@@ -76,6 +76,8 @@
     elements.cartBackdrop.addEventListener("click", closeCart);
     elements.closeProductModal.addEventListener("click", closeProductModal);
     elements.productModalBackdrop.addEventListener("click", closeProductModal);
+    elements.productModalContent.addEventListener("click", handleProductModalClick);
+    elements.productModalContent.addEventListener("change", handleProductModalChange);
     elements.checkoutButton.addEventListener("click", goToCheckout);
     elements.checkoutForm.addEventListener("submit", sendCheckoutToWhatsapp);
     elements.shippingMethod.addEventListener("change", () => renderCheckoutSummary());
@@ -245,6 +247,7 @@
     elements.grid.querySelectorAll("[data-add]").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
+        button.blur();
         addToCart(button.dataset.add);
       });
     });
@@ -292,8 +295,23 @@
     const carousel = [...elements.grid.querySelectorAll("[data-carousel]")]
       .find((candidate) => candidate.dataset.carousel === category);
     if (!carousel) return;
+
+    const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+    if (maxScrollLeft <= 0) return;
+
+    const scrollAmount = carousel.clientWidth * 0.82;
+    const edgeTolerance = 8;
+    const nextLeft = carousel.scrollLeft + direction * scrollAmount;
+    let targetLeft = nextLeft;
+
+    if (direction > 0 && nextLeft >= maxScrollLeft - edgeTolerance) {
+      targetLeft = 0;
+    } else if (direction < 0 && nextLeft <= edgeTolerance) {
+      targetLeft = maxScrollLeft;
+    }
+
     carousel.scrollBy({
-      left: direction * carousel.clientWidth * 0.82,
+      left: targetLeft - carousel.scrollLeft,
       behavior: "smooth"
     });
   }
@@ -305,7 +323,7 @@
 
   function addToCart(productId, qty = 1) {
     const product = state.products.find((item) => item.id === productId);
-    if (!product || product.stock <= 0) return;
+    if (!product || product.stock <= 0) return false;
     const existing = state.cart.find((item) => item.id === productId);
     const currentQty = existing ? existing.qty : 0;
     const requestedQty = Math.max(1, Math.round(Number(qty) || 1));
@@ -313,7 +331,7 @@
 
     if (nextQty <= currentQty) {
       showToast("Ya agregaste todo el stock disponible.");
-      return;
+      return false;
     }
 
     if (existing) existing.qty = nextQty;
@@ -322,6 +340,7 @@
     renderCart();
     const addedQty = nextQty - currentQty;
     showToast(`${addedQty} x ${product.name} agregado${addedQty === 1 ? "" : "s"} al carrito.`);
+    return true;
   }
 
   function updateQty(productId, qty) {
@@ -468,22 +487,40 @@
       </div>
     `;
 
-    const qtyInput = elements.productModalContent.querySelector("[data-modal-qty]");
-    const decreaseButton = elements.productModalContent.querySelector("[data-modal-decrease]");
-    const increaseButton = elements.productModalContent.querySelector("[data-modal-increase]");
-    const addButton = elements.productModalContent.querySelector("[data-modal-add]");
+    updateModalQty(product, state.modalQty);
+  }
 
-    if (decreaseButton) decreaseButton.addEventListener("click", () => updateModalQty(product, state.modalQty - 1));
-    if (increaseButton) increaseButton.addEventListener("click", () => updateModalQty(product, state.modalQty + 1));
-    if (qtyInput) qtyInput.addEventListener("change", () => updateModalQty(product, qtyInput.value));
-    if (addButton) {
-      addButton.addEventListener("click", () => {
-        addToCart(product.id, state.modalQty);
-        closeProductModal();
-      });
+  function getActiveProduct() {
+    return state.products.find((item) => item.id === state.activeProductId);
+  }
+
+  function handleProductModalClick(event) {
+    const button = event.target.closest("[data-modal-decrease], [data-modal-increase], [data-modal-add]");
+    if (!button || !elements.productModalContent.contains(button)) return;
+
+    event.preventDefault();
+    const product = getActiveProduct();
+    if (!product) return;
+
+    if (button.hasAttribute("data-modal-decrease")) {
+      updateModalQty(product, state.modalQty - 1);
+      return;
     }
 
-    updateModalQty(product, state.modalQty);
+    if (button.hasAttribute("data-modal-increase")) {
+      updateModalQty(product, state.modalQty + 1);
+      return;
+    }
+
+    if (button.hasAttribute("data-modal-add") && addToCart(product.id, state.modalQty)) {
+      closeProductModal();
+    }
+  }
+
+  function handleProductModalChange(event) {
+    if (!event.target.matches("[data-modal-qty]")) return;
+    const product = getActiveProduct();
+    if (product) updateModalQty(product, event.target.value);
   }
 
   function updateModalQty(product, qty) {
@@ -539,10 +576,11 @@
   }
 
   function clearCart() {
-    if (!state.cart.length || !confirm("¿Vaciar todo el carrito?")) return;
+    if (!state.cart.length) return;
     state.cart = [];
     AG.saveCart(state.cart);
     renderCart();
+    showToast("Carrito vacío.");
   }
 
   function renderCheckoutSummary(lines = getCartLines(), total = null) {

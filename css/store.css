@@ -411,7 +411,7 @@
 .category-filters {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 108px;
+  grid-auto-columns: 118px;
   justify-content: center;
   gap: 18px;
   overflow-x: auto;
@@ -446,8 +446,8 @@
 }
 
 .filter-icon {
-  width: 78px;
-  height: 78px;
+  width: 86px;
+  height: 86px;
   display: grid;
   place-items: center;
   border: 2px dashed rgba(255, 222, 89, 0.5);
@@ -457,17 +457,17 @@
     var(--surface);
   color: var(--brand-yellow);
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
-  font-size: 1.02rem;
+  font-size: 1.08rem;
   font-weight: 950;
   letter-spacing: 0.02em;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
 .filter-label {
-  max-width: 108px;
+  max-width: 118px;
   overflow: hidden;
   color: inherit;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   line-height: 1.15;
   text-align: center;
   text-overflow: ellipsis;
@@ -478,11 +478,9 @@
 .filter-btn:hover .filter-icon,
 .filter-btn.active .filter-icon {
   border-color: var(--brand-orange);
-  background:
-    linear-gradient(145deg, var(--brand-yellow), #ff9a3d),
-    var(--brand-orange);
+  background: var(--brand-yellow);
   color: #211302;
-  box-shadow: 0 16px 34px rgba(255, 117, 31, 0.28);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
 }
 
 .products-grid {
@@ -687,10 +685,18 @@
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
-.quick-add-btn:hover {
-  transform: translate(-1px, -1px);
-  background: var(--brand-yellow);
-  box-shadow: 4px 4px 0 #050505;
+@media (hover: hover) and (pointer: fine) {
+  .quick-add-btn:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    background: var(--brand-yellow);
+    box-shadow: 4px 4px 0 #050505;
+  }
+}
+
+.quick-add-btn:active:not(:disabled) {
+  transform: translate(0, 0);
+  background: #9fc6df;
+  box-shadow: 3px 3px 0 #050505;
 }
 
 .quick-add-btn:disabled {
@@ -810,6 +816,7 @@
 .qty-control {
   display: inline-grid;
   grid-template-columns: 34px 44px 34px;
+  width: max-content;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
@@ -857,6 +864,7 @@
   right: 18px;
   bottom: 18px;
   z-index: 120;
+  pointer-events: none;
   max-width: min(92vw, 360px);
   transform: translateY(24px);
   opacity: 0;
@@ -894,7 +902,7 @@
   left: 50%;
   top: 50%;
   z-index: 110;
-  width: min(94vw, 860px);
+  width: min(94vw, 980px);
   max-height: min(88svh, 720px);
   overflow: auto;
   transform: translate(-50%, -46%) scale(0.98);
@@ -927,7 +935,7 @@
 
 .modal-product-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
   gap: 24px;
   align-items: stretch;
 }
@@ -935,8 +943,10 @@
 .modal-product-media {
   --modal-media-pad: 28px;
   position: relative;
-  aspect-ratio: 4 / 3;
-  min-height: 360px;
+  min-width: 0;
+  height: min(52svh, 430px);
+  min-height: 340px;
+  padding: var(--modal-media-pad);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -948,11 +958,9 @@
 
 .modal-product-media img {
   display: block;
-  position: absolute;
-  top: var(--modal-media-pad);
-  left: var(--modal-media-pad);
-  width: calc(100% - (var(--modal-media-pad) * 2));
-  height: calc(100% - (var(--modal-media-pad) * 2));
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   object-fit: contain;
 }
 
@@ -966,6 +974,7 @@
   display: grid;
   align-content: start;
   gap: 16px;
+  min-width: 0;
   padding: 16px 42px 16px 0;
 }
 
@@ -1432,19 +1441,19 @@
   }
 
   .category-filters {
-    grid-auto-columns: 82px;
+    grid-auto-columns: 92px;
     gap: 12px;
   }
 
   .filter-icon {
-    width: 66px;
-    height: 66px;
-    font-size: 0.9rem;
+    width: 74px;
+    height: 74px;
+    font-size: 0.96rem;
   }
 
   .filter-label {
-    max-width: 82px;
-    font-size: 0.72rem;
+    max-width: 92px;
+    font-size: 0.78rem;
   }
 
   .product-card h3 {
@@ -1518,7 +1527,10 @@
     transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease;
   }
 
-  .mobile-cart-summary[hidden],
+  .mobile-cart-summary[hidden] {
+    display: none !important;
+  }
+
   .store-page.lock-scroll .mobile-cart-summary {
     display: flex;
     pointer-events: none;
@@ -1602,12 +1614,19 @@
 
   .qty-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: max-content minmax(0, 1fr);
     align-items: stretch;
+    justify-content: start;
   }
 
   .qty-control {
     grid-template-columns: 40px 48px 40px;
+    justify-self: start;
+  }
+
+  .qty-row .btn {
+    justify-self: end;
+    min-width: 104px;
   }
 
   .product-modal {
@@ -1616,7 +1635,7 @@
     top: auto;
     bottom: 0;
     width: 100%;
-    max-height: 92svh;
+    max-height: 88svh;
     transform: translateY(104%) scale(1);
     border-right: 0;
     border-bottom: 0;
@@ -1629,15 +1648,20 @@
   }
 
   .product-modal-content {
-    padding: 14px 12px calc(16px + env(safe-area-inset-bottom));
+    padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .modal-product-grid {
+    gap: 10px;
   }
 
   .modal-product-media {
-    --modal-media-pad: 36px;
+    --modal-media-pad: 22px;
     aspect-ratio: auto;
-    height: clamp(290px, 45svh, 380px);
+    height: clamp(130px, 22svh, 170px);
     min-height: 0;
     max-height: none;
+    padding: var(--modal-media-pad);
   }
 
   .modal-close {
@@ -1652,12 +1676,44 @@
   }
 
   .modal-product-detail {
-    gap: 12px;
+    gap: 8px;
+  }
+
+  .modal-product-detail h2 {
+    font-size: clamp(1.28rem, 7vw, 1.75rem);
+    line-height: 1.06;
+  }
+
+  .modal-product-detail p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .modal-price-row,
+  .modal-qty-panel {
+    gap: 4px;
   }
 
   .modal-qty-control {
     width: 100%;
-    grid-template-columns: 48px 1fr 48px;
+    grid-template-columns: 44px 1fr 44px;
+  }
+
+  .modal-qty-control button,
+  .modal-qty-control input {
+    min-height: 40px;
+  }
+
+  .modal-total {
+    padding-top: 8px;
+  }
+
+  .modal-add-btn {
+    min-height: 44px;
   }
 
   .toast {
