@@ -38,22 +38,16 @@
 /* Textura diagonal tipo papel/candy, más suave */
 .store-page::before {
   background:
-    repeating-linear-gradient(
-      125deg,
+    repeating-linear-gradient(125deg,
       rgba(255, 222, 89, 0.055) 0 1px,
-      transparent 1px 34px
-    ),
-    repeating-linear-gradient(
-      35deg,
+      transparent 1px 34px),
+    repeating-linear-gradient(35deg,
       rgba(255, 117, 31, 0.045) 0 1px,
-      transparent 1px 48px
-    ),
-    linear-gradient(
-      115deg,
+      transparent 1px 48px),
+    linear-gradient(115deg,
       transparent 0%,
       rgba(255, 154, 61, 0.08) 38%,
-      transparent 68%
-    );
+      transparent 68%);
 
   background-size:
     110px 110px,
@@ -65,20 +59,16 @@
   will-change: background-position;
   animation: candy-paper-slide 52s linear infinite;
 
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 10%,
-    #000 86%,
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 10%,
-    #000 86%,
-    transparent
-  );
+  -webkit-mask-image: linear-gradient(to bottom,
+      transparent,
+      #000 10%,
+      #000 86%,
+      transparent);
+  mask-image: linear-gradient(to bottom,
+      transparent,
+      #000 10%,
+      #000 86%,
+      transparent);
 }
 
 /* Viñeta + grano sutil + luz superior */
@@ -98,11 +88,9 @@
       rgba(255, 154, 61, 0.08),
       transparent 26rem),
 
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       rgba(255, 255, 255, 0.018) 0 1px,
-      transparent 1px 4px
-    );
+      transparent 1px 4px);
 
   opacity: 0.66;
   mix-blend-mode: normal;
@@ -188,11 +176,9 @@
         rgba(255, 154, 61, 0.08),
         transparent 22rem),
 
-      repeating-linear-gradient(
-        0deg,
+      repeating-linear-gradient(0deg,
         rgba(255, 255, 255, 0.014) 0 1px,
-        transparent 1px 4px
-      );
+        transparent 1px 4px);
   }
 
   .store-page .bg-orb {
@@ -208,6 +194,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .store-page,
   .store-page::before,
   .store-page::after {
@@ -421,6 +408,7 @@
   margin-bottom: 14px;
   scrollbar-width: none;
 }
+
 .category-filters::-webkit-scrollbar {
   display: none;
 }
@@ -930,7 +918,7 @@
 }
 
 .product-modal-content {
-  padding: 18px;
+  padding: 10px;
 }
 
 .modal-product-grid {
@@ -960,6 +948,7 @@
   display: block;
   width: 100%;
   height: 100%;
+  max-height: 100%;
   min-width: 0;
   object-fit: contain;
 }
@@ -1656,9 +1645,9 @@
   }
 
   .modal-product-media {
-    --modal-media-pad: 22px;
+    --modal-media-pad: 12px;
     aspect-ratio: auto;
-    height: clamp(130px, 22svh, 170px);
+    height: clamp(220px, 36svh, 300px);
     min-height: 0;
     max-height: none;
     padding: var(--modal-media-pad);
