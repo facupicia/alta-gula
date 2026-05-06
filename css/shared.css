@@ -119,8 +119,8 @@ button:disabled {
 }
 
 .header-logo {
-  width: clamp(118px, 15vw, 176px);
-  height: 62px;
+  width: clamp(54px, 8vw, 72px);
+  height: clamp(54px, 8vw, 72px);
 }
 
 .brand-name {
@@ -504,8 +504,8 @@ h3 {
   }
 
   .header-logo {
-    width: 112px;
-    height: 48px;
+    width: 54px;
+    height: 54px;
   }
 
   .brand-name {
