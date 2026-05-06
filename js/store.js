@@ -719,11 +719,9 @@
     .join("\n");
 
   const message = [
+    "--------------------------------------------",
     `Nombre y apellido ${EMOJI_HANDS}`,
     name,
-    "",
-    "Teléfono",
-    fullPhone || "-",
     "",
     addressLabel,
     addressValue,
@@ -734,17 +732,16 @@
     `Selecciona envío ${EMOJI_TRUCK}`,
     `- 1 x ${shippingLabel} | precio ${formatOrderPrice(deliveryFee)} | total ${formatOrderPrice(deliveryFee)}`,
     "",
-    "--------------------",
-    "",
+    "--------------------------------------------",
     `Sub-total ${formatOrderCurrency(productsTotal)}`,
     `Envío ${formatOrderCurrency(deliveryFee)}`,
+    "",
     `TOTAL DE LA ORDEN ${formatOrderCurrency(total)}`,
     "",
     "TIPO DE PAGO",
     payment,
     comment ? ["", "Comentario", comment].join("\n") : ""
   ]
-    .filter((line) => line !== "")
     .join("\n");
 
   console.log("MENSAJE WHATSAPP:", message);
