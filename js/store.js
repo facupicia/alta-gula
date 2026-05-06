@@ -720,7 +720,7 @@
 
   const message = [
     "--------------------------------------------",
-    `Nombre y apellido ${EMOJI_HANDS}`,
+    `Nombre y apellido: ${EMOJI_HANDS}`,
     name,
     "",
     addressLabel,
