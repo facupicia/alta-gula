@@ -4,8 +4,9 @@
   const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtysB1M_oNpuXveauerVx3N7ujqdVXBAkkc4uw4cTXmCsNl6_flTMNLERs3PSE_EibVjNbpuYPVIX1/pub?output=csv";
 
   const DEFAULT_CATEGORY = "Sin categoría";
+  const CART_STORAGE_KEY = "altaGula.cart.v1";
   const whatsappNumber = "5493464625778";
-  let cart = [];
+  let cart = loadStoredCart();
 
   function slugify(value) {
     return String(value || "producto")
@@ -208,14 +209,52 @@
     return products;
   }
 
+  function normalizeCartEntries(nextCart) {
+    if (!Array.isArray(nextCart)) return [];
+
+    const entriesById = new Map();
+
+    nextCart.forEach((item) => {
+      const id = String(item?.id || "").trim();
+      const qty = Math.max(0, Math.round(Number(item?.qty) || 0));
+      if (!id || qty <= 0) return;
+      entriesById.set(id, (entriesById.get(id) || 0) + qty);
+    });
+
+    return [...entriesById.entries()].map(([id, qty]) => ({ id, qty }));
+  }
+
+  function loadStoredCart() {
+    try {
+      const storedCart = window.localStorage.getItem(CART_STORAGE_KEY);
+      return normalizeCartEntries(JSON.parse(storedCart || "[]"));
+    } catch (error) {
+      console.warn("No se pudo leer el carrito guardado.", error);
+      return [];
+    }
+  }
+
+  function persistCart() {
+    try {
+      if (cart.length) {
+        window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      } else {
+        window.localStorage.removeItem(CART_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.warn("No se pudo guardar el carrito localmente.", error);
+    }
+  }
+
   function getCart() {
-    return cart;
+    return cart.map((item) => ({ ...item }));
   }
 
   function saveCart(nextCart) {
-    cart = nextCart;
-    window.dispatchEvent(new CustomEvent("altaGula:cartChanged", { detail: cart }));
-    return cart;
+    cart = normalizeCartEntries(nextCart);
+    persistCart();
+    window.dispatchEvent(new CustomEvent("altaGula:cartChanged", { detail: getCart() }));
+    return getCart();
   }
 
   function formatPrice(value) {

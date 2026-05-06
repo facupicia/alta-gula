@@ -42,6 +42,8 @@
       checkoutTotal: $("#checkoutTotal"),
       checkoutStatus: $("#checkoutStatus"),
       shippingMethod: $("#shippingMethod"),
+      customerAddress: $("#customerAddress"),
+      customerAddressLabel: $("label[for='customerAddress']"),
       customerName: $("#customerName"),
       paymentTransfer: $("#paymentTransfer"),
       transferInfo: $("#transferInfo"),
@@ -80,11 +82,15 @@
     elements.productModalContent.addEventListener("change", handleProductModalChange);
     elements.checkoutButton.addEventListener("click", goToCheckout);
     elements.checkoutForm.addEventListener("submit", sendCheckoutToWhatsapp);
-    elements.shippingMethod.addEventListener("change", () => renderCheckoutSummary());
+    elements.shippingMethod.addEventListener("change", () => {
+      updateAddressFieldState();
+      renderCheckoutSummary();
+    });
     elements.clearCartButton.addEventListener("click", clearCart);
     elements.copyTransferButton.addEventListener("click", copyTransferDetails);
     document.addEventListener("change", handlePaymentMethodChange);
     updateTransferInfoVisibility();
+    updateAddressFieldState();
 
     window.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
@@ -375,6 +381,25 @@
     return isDeliverySelected(shipping) ? DELIVERY_FEE : 0;
   }
 
+  function updateAddressFieldState() {
+    const needsAddress = isDeliverySelected();
+    elements.customerAddress.required = needsAddress;
+    elements.customerAddress.disabled = !needsAddress;
+    elements.customerAddress.placeholder = needsAddress
+      ? "Calle, número, barrio o referencia para la entrega."
+      : "No hace falta domicilio para retiro local.";
+
+    if (elements.customerAddressLabel) {
+      elements.customerAddressLabel.textContent = needsAddress
+        ? "Dirección de envío (*)"
+        : "Dirección de envío";
+    }
+
+    if (!needsAddress) {
+      elements.customerAddress.value = "";
+    }
+  }
+
   function renderCart() {
     const lines = getCartLines();
     const count = lines.reduce((sum, item) => sum + item.qty, 0);
@@ -638,50 +663,111 @@
   }
 
   function sendCheckoutToWhatsapp(event) {
-    event.preventDefault();
-    const lines = getCartLines();
-    if (!lines.length) {
-      showToast("Agregá productos al carrito antes de enviar el pedido.");
-      return;
-    }
+  event.preventDefault();
 
-    const productsTotal = getProductsTotal(lines);
-    if (productsTotal < MIN_ORDER_TOTAL) {
-      showToast(`El pedido mínimo es ${AG.formatPrice(MIN_ORDER_TOTAL)}.`);
-      return;
-    }
+  const lines = getCartLines();
 
-    if (!elements.checkoutForm.reportValidity()) return;
+  if (!lines.length) {
+    showToast("Agregá productos al carrito antes de enviar el pedido.");
+    return;
+  }
 
-    const formData = new FormData(elements.checkoutForm);
-    const name = String(formData.get("customerName") || "").trim();
-    const phonePrefix = String(formData.get("phonePrefix") || "").trim();
-    const phone = String(formData.get("customerPhone") || "").trim();
-    const shipping = String(formData.get("shippingMethod") || "").trim();
-    const deliveryFee = getDeliveryFee(shipping);
-    const total = productsTotal + deliveryFee;
-    const address = String(formData.get("customerAddress") || "").trim();
-    const comment = String(formData.get("customerComment") || "").trim();
-    const payment = String(formData.get("paymentMethod") || "Efectivo").trim();
-    const summary = lines.map((item) => `- ${item.qty} x ${item.name} (${AG.formatPrice(item.price * item.qty)})`).join("\n");
-    const message = [
-      "Hola Alta GULA Delivery, quiero hacer este pedido:",
-      summary,
-      "",
-      `Subtotal productos: ${AG.formatPrice(productsTotal)}`,
-      deliveryFee ? `Envío delivery: ${AG.formatPrice(deliveryFee)}` : "Envío: Retiro local",
-      `Total: ${AG.formatPrice(total)}`,
-      "",
-      "Datos del pedido:",
-      `Nombre: ${name}`,
-      `Teléfono: ${phonePrefix} ${phone}`,
-      `Envío: ${shipping}`,
-      `Dirección: ${address}`,
-      `Pago: ${payment}`,
-      comment ? `Comentario: ${comment}` : "Comentario: -"
-    ].join("\n");
+  const productsTotal = getProductsTotal(lines);
 
-    window.open(`https://wa.me/${AG.whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+  if (productsTotal < MIN_ORDER_TOTAL) {
+    showToast(`El pedido mínimo es ${AG.formatPrice(MIN_ORDER_TOTAL)}.`);
+    return;
+  }
+
+  if (!elements.checkoutForm.reportValidity()) return;
+
+  const formData = new FormData(elements.checkoutForm);
+
+  const name = String(formData.get("customerName") || "").trim();
+  const phonePrefix = String(formData.get("phonePrefix") || "").trim();
+  const phone = String(formData.get("customerPhone") || "").trim();
+  const shipping = String(formData.get("shippingMethod") || "").trim();
+  const address = String(formData.get("customerAddress") || "").trim();
+  const comment = String(formData.get("customerComment") || "").trim();
+  const payment = String(formData.get("paymentMethod") || "Efectivo").trim();
+
+  const deliveryFee = getDeliveryFee(shipping);
+  const total = productsTotal + deliveryFee;
+
+  const fullPhone = [phonePrefix, phone].filter(Boolean).join(" ");
+  const shippingLabel = isDeliverySelected(shipping)
+    ? "Envío a domicilio"
+    : "Retiro local";
+  const addressLabel = isDeliverySelected(shipping)
+    ? "Dirección de envío"
+    : "Retiro";
+  const addressValue = isDeliverySelected(shipping)
+    ? address || "-"
+    : "Retiro en local";
+
+  // Emojis escritos como surrogate pairs para evitar problemas de encoding
+  const EMOJI_HANDS = "\uD83D\uDE4C"; // 🙌
+  const EMOJI_CART = "\uD83D\uDED2";  // 🛒
+  const EMOJI_TRUCK = "\uD83D\uDE9A"; // 🚚
+
+  const summary = lines
+    .map((item) => {
+      const itemTotal = item.price * item.qty;
+
+      return `- ${item.qty} x ${item.name} | precio ${formatOrderPrice(item.price)} | total ${formatOrderPrice(itemTotal)}`;
+    })
+    .join("\n");
+
+  const message = [
+    `Nombre y apellido ${EMOJI_HANDS}`,
+    name,
+    "",
+    "Teléfono",
+    fullPhone || "-",
+    "",
+    addressLabel,
+    addressValue,
+    "",
+    `Detalle del pedido ${EMOJI_CART}`,
+    summary,
+    "",
+    `Selecciona envío ${EMOJI_TRUCK}`,
+    `- 1 x ${shippingLabel} | precio ${formatOrderPrice(deliveryFee)} | total ${formatOrderPrice(deliveryFee)}`,
+    "",
+    "--------------------",
+    "",
+    `Sub-total ${formatOrderCurrency(productsTotal)}`,
+    `Envío ${formatOrderCurrency(deliveryFee)}`,
+    `TOTAL DE LA ORDEN ${formatOrderCurrency(total)}`,
+    "",
+    "TIPO DE PAGO",
+    payment,
+    comment ? ["", "Comentario", comment].join("\n") : ""
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
+
+  console.log("MENSAJE WHATSAPP:", message);
+
+  const whatsappUrl = `https://wa.me/${AG.whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  }
+
+  function formatOrderPrice(value) {
+    return new Intl.NumberFormat("es-AR", {
+      maximumFractionDigits: 0
+    }).format(Number(value) || 0);
+  }
+
+  function formatOrderCurrency(value) {
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      currencyDisplay: "code",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(Number(value) || 0).replace(/\s+/g, " ");
   }
 
   function showToast(message) {
