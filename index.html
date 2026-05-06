@@ -21,7 +21,7 @@
         "@type": "Store",
         "name": "Alta GULA Delivery",
         "image": "assets/alta-gula-logo.png",
-        "telephone": "+54 9 3464 000000",
+        "telephone": "+54 9 3464 625778",
         "priceRange": "$$",
         "description": "Tienda de golosinas, chocolates, bebidas y snacks con entrega a domicilio.",
         "openingHours": [
@@ -50,7 +50,7 @@
         <a href="#contacto">Contacto</a>
       </nav>
       <div class="header-actions">
-        <a class="btn btn-secondary" href="https://wa.me/5493464000000" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn btn-secondary" href="https://wa.me/5493464625778" target="_blank" rel="noopener">WhatsApp</a>
         <button class="icon-btn" id="cartButton" type="button" aria-label="Abrir carrito">
           <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="8" cy="21" r="1"></circle>
@@ -92,7 +92,7 @@
             carrito y enviá el resumen en un toque.</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#catalogo">Ver productos</a>
-            <a class="btn btn-ghost" href="https://wa.me/5493464000000" target="_blank" rel="noopener">Contactar</a>
+            <a class="btn btn-ghost" href="https://wa.me/5493464625778" target="_blank" rel="noopener">Contactar</a>
           </div>
           <div class="hero-pills" aria-label="Información destacada">
             <span class="pill">Delivery local</span>
@@ -170,18 +170,21 @@
             <div class="payment-box">
               <span class="payment-title">Método de pago</span>
               <label class="radio-row">
-                <input type="radio" name="paymentMethod" value="Efectivo" form="checkoutForm" checked>
+                <input id="paymentCash" type="radio" name="paymentMethod" value="Efectivo" form="checkoutForm" checked>
                 <span>Efectivo</span>
               </label>
               <label class="radio-row">
-                <input type="radio" name="paymentMethod" value="Transferencia" form="checkoutForm">
+                <input id="paymentTransfer" type="radio" name="paymentMethod" value="Transferencia" form="checkoutForm">
                 <span>Transferencia</span>
               </label>
-              <div class="transfer-info">
-                Santiago Kinderknecht<br>
-                CVU: 00000031000085328293079<br>
-                Alias: santi.kinder<br>
-                Mercado Pago
+              <div class="transfer-info" id="transferInfo" data-visible="false">
+                <div class="transfer-details" id="transferDetails">
+                  <span data-copy-line>Nombre: Brisa Belen Berretta</span>
+                  <span data-copy-line>CVU: 0000003100023648111987</span>
+                  <span data-copy-line>Alias: alta.gula.mp</span>
+                  <span data-copy-line>Mercado Pago</span>
+                </div>
+                <button class="transfer-copy-btn" id="copyTransferButton" type="button">Copiar datos</button>
               </div>
             </div>
             <div class="checkout-total-box">
@@ -207,26 +210,24 @@
             <img class="brand-logo" src="assets/alta-gula-logo.png" alt="">
             <span class="brand-name"><span>Alta GULA</span><span>Delivery</span></span>
           </a>
-          <p>Tu tienda de golosinas para resolver antojos con entrega rápida y pedido simple por WhatsApp.</p>
+          <p>Tu tienda de golosinas.</p>
         </div>
         <div>
           <h3>Contacto</h3>
           <ul class="footer-list">
-            <li><a href="https://wa.me/5493464000000" target="_blank" rel="noopener">+54 9 3464 000000</a></li>
-            <li><a href="mailto:pedidos@altagula.local">pedidos@altagula.local</a></li>
+            <li><a href="https://wa.me/5493464625778" target="_blank" rel="noopener">+54 9 3464 625778</a></li>
           </ul>
         </div>
         <div>
           <h3>Redes</h3>
           <ul class="footer-list">
-            <li><a href="#" aria-label="Instagram de Alta GULA Delivery">Instagram</a></li>
-            <li><a href="#" aria-label="Facebook de Alta GULA Delivery">Facebook</a></li>
+            <li><a href="https://www.instagram.com/altagula.delivery/?hl=es-la"
+                aria-label="Instagram de Alta GULA Delivery">Instagram</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 Alta GULA Delivery</span>
-        <span>Catálogo desde hoja de cálculo y pedidos por WhatsApp</span>
+        <span>© 2026 Alta GULA</span>
       </div>
     </div>
   </footer>

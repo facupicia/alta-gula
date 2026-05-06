@@ -3,6 +3,7 @@
 
   const AG = window.AltaGula;
   const MIN_ORDER_TOTAL = 1000;
+  const DELIVERY_FEE = 1500;
   const state = {
     products: [],
     cart: [],
@@ -40,7 +41,12 @@
       checkoutSummary: $("#checkoutSummary"),
       checkoutTotal: $("#checkoutTotal"),
       checkoutStatus: $("#checkoutStatus"),
+      shippingMethod: $("#shippingMethod"),
       customerName: $("#customerName"),
+      paymentTransfer: $("#paymentTransfer"),
+      transferInfo: $("#transferInfo"),
+      transferDetails: $("#transferDetails"),
+      copyTransferButton: $("#copyTransferButton"),
       sendWhatsappButton: $("#sendWhatsappButton"),
       clearCartButton: $("#clearCartButton"),
       productModal: $("#productModal"),
@@ -72,7 +78,11 @@
     elements.productModalBackdrop.addEventListener("click", closeProductModal);
     elements.checkoutButton.addEventListener("click", goToCheckout);
     elements.checkoutForm.addEventListener("submit", sendCheckoutToWhatsapp);
+    elements.shippingMethod.addEventListener("change", () => renderCheckoutSummary());
     elements.clearCartButton.addEventListener("click", clearCart);
+    elements.copyTransferButton.addEventListener("click", copyTransferDetails);
+    document.addEventListener("change", handlePaymentMethodChange);
+    updateTransferInfoVisibility();
 
     window.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
@@ -81,6 +91,46 @@
       }
     });
 
+  }
+
+  function handlePaymentMethodChange(event) {
+    if (event.target.name !== "paymentMethod") return;
+    updateTransferInfoVisibility();
+  }
+
+  function updateTransferInfoVisibility() {
+    elements.transferInfo.dataset.visible = elements.paymentTransfer.checked ? "true" : "false";
+  }
+
+  async function copyTransferDetails() {
+    const transferText = [...elements.transferDetails.querySelectorAll("[data-copy-line]")]
+      .map((line) => line.textContent.trim())
+      .filter(Boolean)
+      .join("\n");
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(transferText);
+      } else if (!copyTextFallback(transferText)) {
+        throw new Error("Clipboard unavailable");
+      }
+      showToast("Datos de transferencia copiados.");
+    } catch (error) {
+      showToast("No se pudieron copiar los datos.");
+    }
+  }
+
+  function copyTextFallback(text) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    return copied;
   }
 
   function renderFilters() {
@@ -290,10 +340,22 @@
       .filter((line) => line.qty > 0);
   }
 
+  function getProductsTotal(lines) {
+    return lines.reduce((sum, item) => sum + item.qty * item.price, 0);
+  }
+
+  function isDeliverySelected(shipping = elements.shippingMethod.value) {
+    return String(shipping || "").trim().toLowerCase() === "delivery";
+  }
+
+  function getDeliveryFee(shipping = elements.shippingMethod.value) {
+    return isDeliverySelected(shipping) ? DELIVERY_FEE : 0;
+  }
+
   function renderCart() {
     const lines = getCartLines();
     const count = lines.reduce((sum, item) => sum + item.qty, 0);
-    const total = lines.reduce((sum, item) => sum + item.qty * item.price, 0);
+    const total = getProductsTotal(lines);
     elements.cartCount.textContent = count;
     elements.cartTotal.textContent = AG.formatPrice(total);
     elements.mobileCartCount.textContent = `${count} producto${count === 1 ? "" : "s"}`;
@@ -480,9 +542,11 @@
   }
 
   function renderCheckoutSummary(lines = getCartLines(), total = null) {
-    const orderTotal = total ?? lines.reduce((sum, item) => sum + item.qty * item.price, 0);
+    const productsTotal = total ?? getProductsTotal(lines);
     const count = lines.reduce((sum, item) => sum + item.qty, 0);
     const hasCart = lines.length > 0;
+    const deliveryFee = hasCart ? getDeliveryFee() : 0;
+    const orderTotal = productsTotal + deliveryFee;
 
     elements.checkoutTotal.textContent = AG.formatPrice(orderTotal);
     elements.sendWhatsappButton.disabled = !hasCart;
@@ -507,9 +571,16 @@
           <strong>${AG.formatPrice(item.price * item.qty)}</strong>
         </div>
       `).join("")}
+      ${deliveryFee ? `
+        <div class="summary-row">
+          <span>Envío</span>
+          <span>Delivery</span>
+          <strong>${AG.formatPrice(deliveryFee)}</strong>
+        </div>
+      ` : ""}
       <div class="summary-row summary-total-line">
-        <span>Unidades en carrito (${count})</span>
-        <span>${count}</span>
+        <span>Total a pagar (${count} producto${count === 1 ? "" : "s"})</span>
+        <span></span>
         <strong>${AG.formatPrice(orderTotal)}</strong>
       </div>
     `;
@@ -532,8 +603,8 @@
       return;
     }
 
-    const total = lines.reduce((sum, item) => sum + item.qty * item.price, 0);
-    if (total < MIN_ORDER_TOTAL) {
+    const productsTotal = getProductsTotal(lines);
+    if (productsTotal < MIN_ORDER_TOTAL) {
       showToast(`El pedido mínimo es ${AG.formatPrice(MIN_ORDER_TOTAL)}.`);
       return;
     }
@@ -545,6 +616,8 @@
     const phonePrefix = String(formData.get("phonePrefix") || "").trim();
     const phone = String(formData.get("customerPhone") || "").trim();
     const shipping = String(formData.get("shippingMethod") || "").trim();
+    const deliveryFee = getDeliveryFee(shipping);
+    const total = productsTotal + deliveryFee;
     const address = String(formData.get("customerAddress") || "").trim();
     const comment = String(formData.get("customerComment") || "").trim();
     const payment = String(formData.get("paymentMethod") || "Efectivo").trim();
@@ -553,6 +626,8 @@
       "Hola Alta GULA Delivery, quiero hacer este pedido:",
       summary,
       "",
+      `Subtotal productos: ${AG.formatPrice(productsTotal)}`,
+      deliveryFee ? `Envío delivery: ${AG.formatPrice(deliveryFee)}` : "Envío: Retiro local",
       `Total: ${AG.formatPrice(total)}`,
       "",
       "Datos del pedido:",
