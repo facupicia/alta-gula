@@ -411,7 +411,7 @@
 .category-filters {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 96px;
+  grid-auto-columns: 108px;
   justify-content: center;
   gap: 18px;
   overflow-x: auto;
@@ -464,14 +464,15 @@
 }
 
 .filter-label {
-  max-width: 96px;
+  max-width: 108px;
   overflow: hidden;
   color: inherit;
   font-size: 0.78rem;
   line-height: 1.15;
   text-align: center;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .filter-btn:hover .filter-icon,
@@ -932,7 +933,9 @@
 }
 
 .modal-product-media {
+  --modal-media-pad: 28px;
   position: relative;
+  aspect-ratio: 4 / 3;
   min-height: 360px;
   display: grid;
   place-items: center;
@@ -944,8 +947,12 @@
 }
 
 .modal-product-media img {
-  width: 88%;
-  height: 88%;
+  display: block;
+  position: absolute;
+  top: var(--modal-media-pad);
+  left: var(--modal-media-pad);
+  width: calc(100% - (var(--modal-media-pad) * 2));
+  height: calc(100% - (var(--modal-media-pad) * 2));
   object-fit: contain;
 }
 
@@ -1626,13 +1633,22 @@
   }
 
   .modal-product-media {
-    min-height: 190px;
-    max-height: 34svh;
+    --modal-media-pad: 36px;
+    aspect-ratio: auto;
+    height: clamp(290px, 45svh, 380px);
+    min-height: 0;
+    max-height: none;
   }
 
   .modal-close {
     top: 8px;
     right: 8px;
+  }
+
+  .modal-product-media .stock-label {
+    right: auto;
+    left: 12px;
+    border-radius: 999px;
   }
 
   .modal-product-detail {
