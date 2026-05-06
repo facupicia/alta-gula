@@ -3,7 +3,7 @@
 
   const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtysB1M_oNpuXveauerVx3N7ujqdVXBAkkc4uw4cTXmCsNl6_flTMNLERs3PSE_EibVjNbpuYPVIX1/pub?output=csv";
 
-  const categories = ["Golosinas", "Chocolates", "Bebidas", "Snacks", "Combos"];
+  const DEFAULT_CATEGORY = "Sin categoría";
   const whatsappNumber = "5493464625778";
   let cart = [];
 
@@ -34,9 +34,65 @@
     return !["no", "false", "0", "oculto", "hidden", "inactivo"].includes(normalized);
   }
 
-  function normalizeCategory(value) {
-    const match = categories.find((category) => category.toLowerCase() === String(value || "").trim().toLowerCase());
-    return match || categories[0];
+  function normalizeCategoryName(value) {
+    const clean = String(value || "").trim();
+    return clean;
+  }
+
+  function normalizeCategories(value) {
+    const values = Array.isArray(value)
+      ? value
+      : String(value || "").split(/\s*(?:,|;|\||\/)\s*/);
+    const seen = new Set();
+    const normalized = [];
+
+    values.forEach((item) => {
+      const category = normalizeCategoryName(item);
+      if (!category) return;
+      const key = category.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      normalized.push(category);
+    });
+
+    return normalized.length ? normalized : [DEFAULT_CATEGORY];
+  }
+
+  function getProductCategories(product) {
+    if (Array.isArray(product?.categories) && product.categories.length) {
+      return normalizeCategories(product.categories);
+    }
+    return normalizeCategories(product?.category);
+  }
+
+  function productHasCategory(product, category) {
+    const expected = String(category || "").trim().toLowerCase();
+    if (!expected) return false;
+    return getProductCategories(product).some((item) => item.toLowerCase() === expected);
+  }
+
+  function getCatalogCategories(products = []) {
+    const seen = new Set();
+    const catalogCategories = [];
+    const addCategory = (category) => {
+      const clean = normalizeCategoryName(category);
+      const key = clean.toLowerCase();
+      if (!clean || seen.has(key)) return;
+      seen.add(key);
+      catalogCategories.push(clean);
+    };
+
+    products.forEach((product) => getProductCategories(product).forEach(addCategory));
+
+    return catalogCategories;
+  }
+
+  function getPrimaryCategory(product) {
+    return getProductCategories(product)[0] || DEFAULT_CATEGORY;
+  }
+
+  function formatCategories(product) {
+    return getProductCategories(product).join(", ");
   }
 
   function normalizeProduct(raw, index) {
@@ -50,12 +106,15 @@
       : (normalizedStatus.includes("sin stock") || normalizedStatus.includes("agotado") ? 0 : 999);
     const now = new Date().toISOString();
 
+    const productCategories = normalizeCategories(raw["Tipo"] ?? raw.Tipo ?? raw.tipo);
+
     return {
       id: String(raw.id || raw.ID || raw["ID de artículo"] || raw["ID de articulo"] || slugify(name) || `producto-${index + 1}`),
       name: name || `Producto ${index + 1}`,
-      description: String(raw.description || raw.descripcion || raw["Descripción"] || raw["Descripcion"] || "").trim(),
+      description: String(raw.description || raw.descripcion || raw["Descripción"] || raw["Descripcion"] || raw["Descripcion del producto"] || "").trim(),
       price: Math.max(0, toNumber(raw.price || raw.precio || raw["Precio"])),
-      category: normalizeCategory(raw.category || raw.categoria || raw["Tipo"] || raw["Categoría"] || raw["Categoria"]),
+      category: productCategories[0],
+      categories: productCategories,
       stock,
       stockManaged: stockIsManaged,
       imageUrl: String(raw.imageUrl || raw.imagen || raw["Fotos del producto"] || raw["URL de imagen"] || raw["Imagen"] || "").trim(),
@@ -179,10 +238,15 @@
 
   window.AltaGula = {
     DEFAULT_SHEET_URL,
-    categories,
     whatsappNumber,
     slugify,
     normalizeProduct,
+    normalizeCategories,
+    getProductCategories,
+    productHasCategory,
+    getCatalogCategories,
+    getPrimaryCategory,
+    formatCategories,
     parseCsv,
     syncFromSheet,
     sheetUrlToCsv,

@@ -134,7 +134,7 @@
   }
 
   function renderFilters() {
-    const filters = ["Todos", ...AG.categories];
+    const filters = ["Todos", ...AG.getCatalogCategories(state.products)];
     elements.filters.innerHTML = filters.map((category) => `
       <button class="filter-btn ${category === state.category ? "active" : ""}" type="button" data-category="${AG.escapeHtml(category)}" aria-pressed="${category === state.category}">
         <span class="filter-icon" aria-hidden="true">${categoryIcon(category)}</span>
@@ -152,22 +152,23 @@
   }
 
   function categoryIcon(category) {
-    const icons = {
-      Todos: "AG",
-      Golosinas: "GO",
-      Chocolates: "CH",
-      Bebidas: "BE",
-      Snacks: "SN",
-      Combos: "CO"
-    };
+    if (category === "Todos") return "AG";
+    const initials = String(category || "")
+      .trim()
+      .split(/\s+/)
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
-    return AG.escapeHtml(icons[category] || category.slice(0, 2).toUpperCase());
+    return AG.escapeHtml(initials || "CA");
   }
 
   function getFilteredProducts() {
     return state.products.filter((product) => {
-      const matchesCategory = state.category === "Todos" || product.category === state.category;
-      const haystack = `${product.name} ${product.description} ${product.category}`.toLowerCase();
+      const productCategories = AG.getProductCategories(product);
+      const matchesCategory = state.category === "Todos" || AG.productHasCategory(product, state.category);
+      const haystack = `${product.name} ${product.description} ${productCategories.join(" ")}`.toLowerCase();
       return matchesCategory && haystack.includes(state.query);
     });
   }
@@ -176,13 +177,16 @@
     if (product.imageUrl) {
       return `<img src="${AG.escapeHtml(product.imageUrl)}" alt="${AG.escapeHtml(product.name)}" loading="lazy" onerror="this.closest('.product-media, .cart-thumb, .modal-product-media')?.classList.add('image-error'); this.remove();">`;
     }
-    return `<span class="${className}">${AG.escapeHtml(product.category.slice(0, 1))}</span>`;
+    return `<span class="${className}">${AG.escapeHtml(AG.getPrimaryCategory(product).slice(0, 1))}</span>`;
   }
 
   async function loadSheetProducts() {
     try {
       state.catalogError = false;
       state.products = (await AG.syncFromSheet(AG.DEFAULT_SHEET_URL)).filter((product) => product.visible);
+      if (state.category !== "Todos" && !AG.getCatalogCategories(state.products).includes(state.category)) {
+        state.category = "Todos";
+      }
       renderFilters();
       renderProducts();
       renderCart();
@@ -206,10 +210,10 @@
       return;
     }
 
-    const categories = (state.category === "Todos" ? AG.categories : [state.category])
+    const categories = (state.category === "Todos" ? AG.getCatalogCategories(products) : [state.category])
       .map((category) => ({
         category,
-        products: products.filter((product) => product.category === category)
+        products: products.filter((product) => AG.productHasCategory(product, category))
       }))
       .filter((group) => group.products.length);
 
@@ -373,7 +377,7 @@
 
     elements.cartItems.innerHTML = lines.map((item) => `
       <article class="cart-item">
-        <div class="cart-thumb">${item.imageUrl ? `<img src="${AG.escapeHtml(item.imageUrl)}" alt="" loading="lazy">` : AG.escapeHtml(item.category.slice(0, 1))}</div>
+        <div class="cart-thumb">${item.imageUrl ? `<img src="${AG.escapeHtml(item.imageUrl)}" alt="" loading="lazy">` : AG.escapeHtml(AG.getPrimaryCategory(item).slice(0, 1))}</div>
         <div>
           <h3>${AG.escapeHtml(item.name)}</h3>
           <div class="cart-meta">
@@ -438,7 +442,7 @@
           <span class="stock-label ${soldOut ? "sold-out" : ""}">${getStockLabel(product)}</span>
         </div>
         <div class="modal-product-detail">
-          <span class="product-kicker">${AG.escapeHtml(product.category)}</span>
+          <span class="product-kicker">${AG.escapeHtml(AG.formatCategories(product))}</span>
           <h2 id="productModalTitle">${AG.escapeHtml(product.name)}</h2>
           <p>${AG.escapeHtml(description)}</p>
           <div class="modal-price-row">
