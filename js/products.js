@@ -4,7 +4,7 @@
   const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtysB1M_oNpuXveauerVx3N7ujqdVXBAkkc4uw4cTXmCsNl6_flTMNLERs3PSE_EibVjNbpuYPVIX1/pub?output=csv";
 
   const categories = ["Golosinas", "Chocolates", "Bebidas", "Snacks", "Combos"];
-  const whatsappNumber = "5493464000000";
+  const whatsappNumber = "5493464625778";
   let cart = [];
 
   function slugify(value) {

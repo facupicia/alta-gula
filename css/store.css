@@ -1157,6 +1157,7 @@
 }
 
 .transfer-info {
+  display: none;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--bg) 72%, transparent);
@@ -1164,6 +1165,32 @@
   padding: 12px;
   text-align: center;
   font-size: 0.84rem;
+}
+
+.transfer-info[data-visible="true"] {
+  display: grid;
+  gap: 10px;
+}
+
+.transfer-details {
+  display: grid;
+  gap: 3px;
+}
+
+.transfer-copy-btn {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid color-mix(in srgb, var(--brand-yellow) 45%, var(--line));
+  border-radius: calc(var(--radius) - 4px);
+  background: rgba(255, 222, 89, 0.1);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.transfer-copy-btn:hover {
+  background: rgba(255, 222, 89, 0.18);
 }
 
 .checkout-total-box {
