@@ -719,7 +719,7 @@
     .join("\n");
 
   const message = [
-    "--------------------------------------------",
+    "----------------",
     `Nombre y apellido: ${EMOJI_HANDS}`,
     name,
     "",
@@ -732,7 +732,7 @@
     `Selecciona envío ${EMOJI_TRUCK}`,
     `- 1 x ${shippingLabel} | precio ${formatOrderPrice(deliveryFee)} | total ${formatOrderPrice(deliveryFee)}`,
     "",
-    "--------------------------------------------",
+    "----------------",
     `Sub-total ${formatOrderCurrency(productsTotal)}`,
     `Envío ${formatOrderCurrency(deliveryFee)}`,
     "",
